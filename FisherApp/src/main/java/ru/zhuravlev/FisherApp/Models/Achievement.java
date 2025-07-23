@@ -1,17 +1,17 @@
 package ru.zhuravlev.FisherApp.Models;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
 
 /* author-->
 Sergey Zhuravlev
 */
 @Entity
-public class Achievements {
+@Table(name = "achievements")
+public class Achievement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,10 +23,15 @@ public class Achievements {
     @Size(max = 100, message = "Описание достижения не должно превышать 100 символов")
     private String description;
 
-    public Achievements() {
+    @ManyToMany
+    @JoinTable(name = "user_achievements", joinColumns = @JoinColumn(name = "achievement_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private List<User> users;
+
+
+    public Achievement() {
     }
 
-    public Achievements(String name, String description) {
+    public Achievement(String name, String description) {
         this.name = name;
         this.description = description;
     }

@@ -5,12 +5,13 @@ Sergey Zhuravlev
 */
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.List;
 
 @Entity
+@Table(name = "users")
 public class User {
 
     @Id
@@ -19,10 +20,11 @@ public class User {
 
     @NotNull
     @Size(min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символом")
+    @NotBlank
     private String login;
 
-    @NotNull
-    private String password_hash;
+    @Column(name = "password_hash")
+    private String password;
 
     @NotNull
     @Size(min = 3, max = 30, message = "Длина имени должна быть от 3 до 30 символов")
@@ -33,21 +35,124 @@ public class User {
     private int age;
 
     @NotNull
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @OneToMany(mappedBy = "user")
+    private List<Post> posts;
+
+    @ManyToMany(mappedBy = "users", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Achievement> achievements;
+
+    @Transient
     private long created_at;
+
+    private String role;
 
     public User() {
     }
 
-    public User(String login, String password_hash, String name, int age, Gender gender) {
+    public User(String login, String password, String name, int age, Gender gender) {
         this.login = login;
-        this.password_hash = password_hash;
+        this.password = password;
         this.name = name;
         this.age = age;
         this.gender = gender;
         this.created_at = System.currentTimeMillis();
+        this.role = "USER";
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", login='" + login + '\'' +
+                ", name='" + name + '\'' +
+                ", age=" + age +
+                ", gender=" + gender +
+                ", posts=" + posts +
+                ", achievements=" + achievements +
+                ", created_at=" + created_at +
+                '}';
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public List<Post> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
+    }
+
+    public List<Achievement> getAchievements() {
+        return achievements;
+    }
+
+    public void setAchievements(List<Achievement> achievements) {
+        this.achievements = achievements;
+    }
+
+    public long getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(long created_at) {
+        this.created_at = created_at;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = new BCryptPasswordEncoder().encode(password);
+    }
 }
