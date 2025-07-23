@@ -1,29 +1,12 @@
-package ru.zhuravlev.FisherApp.Models;
+package ru.zhuravlev.FisherApp.DTOs;
 
-
-/* author--> 
-Sergey Zhuravlev
-*/
-
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
-@Entity
-@Table(name = "posts")
-public class Post {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+public class PostDTO {
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "fish_id")
-    private Fish fish;
+    private FishDTO fish;
 
     @Min(value = 0, message = "Вес рыбы должен быть больше 0.")
     private double fish_weight;
@@ -31,28 +14,20 @@ public class Post {
     @Size(min = 1, max = 300, message = "Сообщение должено быть длиной от 1 до 300 символов.")
     private String message;
 
-    public Post() {
+    public PostDTO() {
     }
 
-    public Post(User user, Fish fish, int fish_weight) {
-        this.user = user;
+    public PostDTO(FishDTO fish, int fish_weight, String message) {
         this.fish = fish;
         this.fish_weight = fish_weight;
+        this.message = message;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Fish getFish() {
+    public FishDTO getFish() {
         return fish;
     }
 
-    public void setFish(Fish fish) {
+    public void setFish(FishDTO fish) {
         this.fish = fish;
     }
 

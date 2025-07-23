@@ -1,0 +1,91 @@
+package ru.zhuravlev.FisherApp.DTOs;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import org.springframework.stereotype.Component;
+import ru.zhuravlev.FisherApp.Models.Gender;
+
+import java.util.List;
+
+@Component
+public class UserDTOOut {
+
+    private String login;
+
+    private String name;
+
+    private int age;
+
+    private Gender gender;
+
+    private List<PostDTO> posts;
+
+    private List<AchievementDTO> achievements;
+
+    public UserDTOOut() {
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public List<PostDTO> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<PostDTO> posts) {
+        this.posts = posts;
+    }
+
+    public List<AchievementDTO> getAchievements() {
+        return achievements;
+    }
+
+    public void setAchievements(List<AchievementDTO> achievements) {
+        this.achievements = achievements;
+    }
+
+    @Override
+    public String toString() {
+        return "UserDTO{" +
+                "login='" + login + '\'' +
+                ", name='" + name + '\'' +
+                ", age=" + age +
+                ", gender=" + gender +
+                ", posts=" + posts +
+                ", achievements=" + achievements +
+                '}';
+    }
+}

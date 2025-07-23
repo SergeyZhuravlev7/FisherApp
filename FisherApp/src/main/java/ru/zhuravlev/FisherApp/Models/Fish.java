@@ -5,11 +5,10 @@ package ru.zhuravlev.FisherApp.Models;
 Sergey Zhuravlev
 */
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
 
 @Entity
 public class Fish {
@@ -20,4 +19,38 @@ public class Fish {
 
     @Size(max = 40, message = "Название рыбы не должено превышать 40 символов")
     private String name;
+
+    @OneToMany(mappedBy = "fish")
+    private List<Post> posts;
+
+    public Fish() {
+    }
+
+    public Fish(String name) {
+        this.name = name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<Post> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
+    }
 }
