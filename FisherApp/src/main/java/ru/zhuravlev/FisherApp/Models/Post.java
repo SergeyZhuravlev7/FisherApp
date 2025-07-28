@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "posts")
 public class Post {
@@ -21,12 +23,13 @@ public class Post {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "fish_id")
     private Fish fish;
 
     @Min(value = 0, message = "Вес рыбы должен быть больше 0.")
-    private double fish_weight;
+    @Column(precision = 4, scale = 2)
+    private BigDecimal fish_weight;
 
     @Size(min = 1, max = 300, message = "Сообщение должено быть длиной от 1 до 300 символов.")
     private String message;
@@ -34,10 +37,18 @@ public class Post {
     public Post() {
     }
 
-    public Post(User user, Fish fish, int fish_weight) {
+    public Post(User user, Fish fish, BigDecimal fish_weight) {
         this.user = user;
         this.fish = fish;
         this.fish_weight = fish_weight;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public User getUser() {
@@ -54,13 +65,14 @@ public class Post {
 
     public void setFish(Fish fish) {
         this.fish = fish;
+        fish.addPost(this);
     }
 
-    public double getFish_weight() {
+    public BigDecimal getFish_weight() {
         return fish_weight;
     }
 
-    public void setFish_weight(int fish_weight) {
+    public void setFish_weight(BigDecimal fish_weight) {
         this.fish_weight = fish_weight;
     }
 
@@ -70,5 +82,16 @@ public class Post {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "id=" + id +
+                ", user=" + user.getId() +
+                ", fish=" + fish +
+                ", fish_weight=" + fish_weight +
+                ", message='" + message + '\'' +
+                '}';
     }
 }

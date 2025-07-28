@@ -30,10 +30,10 @@ PRIMARY KEY (id));
 CREATE TABLE IF NOT EXISTS posts (id INT AUTO_INCREMENT,
 user_id INT,
 fish_id SMALLINT,
-fish_weight DOUBLE,
+fish_weight DECIMAL(4,2),
 message VARCHAR(300),
 PRIMARY KEY (id),
-FOREIGN KEY (user_id) REFERENCES users(id),
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
 FOREIGN KEY (fish_id) REFERENCES fish(id)
 );
 

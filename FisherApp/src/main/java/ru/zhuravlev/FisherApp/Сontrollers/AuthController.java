@@ -4,11 +4,17 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import ru.zhuravlev.FisherApp.Configuration.Security.AuthManager;
+import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
@@ -24,24 +30,38 @@ public class AuthController {
     private final UserService userService;
     private final BindingResultConverter converter;
     private final ModelMapper modelMapper;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthManager authenticationManager;
 
     @Autowired
-    public AuthController(UserService userService, BindingResultConverter converter, ModelMapper modelMapper) {
+    public AuthController(UserService userService, BindingResultConverter converter, ModelMapper modelMapper,
+                          PasswordEncoder passwordEncoder, AuthManager authenticationManager) {
         this.userService = userService;
         this.converter = converter;
         this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/registration")
     public ResponseEntity<HttpStatus> registration(@RequestBody @Valid UserDTOIn userDTOIn, BindingResult bindingResult) {
         if (userService.findByLogin(userDTOIn.getLogin()).isPresent()) throw new UserAlreadyExistException();
-
         if (bindingResult.hasErrors()) throw new InvalidUserException(converter.convertToMessage(bindingResult));
-
         User user = modelMapper.map(userDTOIn, User.class);
         userService.save(user);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<HttpStatus> login(@RequestBody @Valid LoginDTO loginDTO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) throw new InvalidUserException(converter.convertToMessage(bindingResult));
+        try {
+            Authentication authentication = authenticationManager.authenticate
+                    (new UsernamePasswordAuthenticationToken(loginDTO.getLogin(), loginDTO.getPassword()));
+        }
+        catch (BadCredentialsException e) {
+            throw new InvalidUserException(e.getMessage());
+        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

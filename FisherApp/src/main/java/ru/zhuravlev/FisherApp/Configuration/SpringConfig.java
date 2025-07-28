@@ -6,6 +6,7 @@ Sergey Zhuravlev
 */
 
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
+@EnableCaching
 public class SpringConfig {
 
     @Bean
@@ -26,10 +28,12 @@ public class SpringConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(r ->r.requestMatchers("api/auth/**").permitAll())
-                .authorizeHttpRequests(r -> r.anyRequest().authenticated())
+                //.authorizeHttpRequests(r ->r.requestMatchers("api/auth/**").permitAll())
+                .authorizeHttpRequests(r -> r.anyRequest().permitAll())
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(basic -> basic.init(http));
+
+
         return http.build();
     }
 }

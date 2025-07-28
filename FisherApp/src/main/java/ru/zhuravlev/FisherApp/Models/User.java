@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -38,10 +39,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     private List<Post> posts;
 
-    @ManyToMany(mappedBy = "users", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(mappedBy = "users", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     private List<Achievement> achievements;
 
     @Transient
@@ -67,12 +68,14 @@ public class User {
         return "User{" +
                 "id=" + id +
                 ", login='" + login + '\'' +
+                ", password='" + password + '\'' +
                 ", name='" + name + '\'' +
                 ", age=" + age +
                 ", gender=" + gender +
                 ", posts=" + posts +
                 ", achievements=" + achievements +
                 ", created_at=" + created_at +
+                ", role='" + role + '\'' +
                 '}';
     }
 
@@ -154,5 +157,15 @@ public class User {
 
     public void setPassword(String password) {
         this.password = new BCryptPasswordEncoder().encode(password);
+    }
+
+    public void addPost(Post post) {
+        if (this.posts == null) this.posts = new ArrayList<>();
+        this.posts.add(post);
+        post.setUser(this);
+    }
+
+    public void deletePost(Post post) {
+        if (this.posts != null) this.posts.remove(post);
     }
 }
