@@ -7,9 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import ru.zhuravlev.FisherApp.Models.User;
 
 @Component
 public class AuthProviderImpl implements AuthenticationProvider {
@@ -30,8 +28,8 @@ public class AuthProviderImpl implements AuthenticationProvider {
 
         var user = userDetailsService.loadUserByUsername(username);
 
-        if (passwordEncoder.matches(password, user.getPassword())) return
-                new UsernamePasswordAuthenticationToken(username, password, user.getAuthorities());
+        if (passwordEncoder.matches(password, user.getPassword()))
+            return new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
 
         throw new BadCredentialsException("Учетные данные не найдены.");
     }

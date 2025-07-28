@@ -8,12 +8,9 @@ public class UserErrorResponse {
 
     private long timestamp;
 
-    private HttpStatus httpStatus;
-
     public UserErrorResponse(String message, long timestamp, HttpStatus httpStatus) {
         this.message = message;
         this.timestamp = timestamp;
-        this.httpStatus = httpStatus;
     }
 
     public UserErrorResponse(String message, long timestamp) {
@@ -37,11 +34,4 @@ public class UserErrorResponse {
         this.timestamp = timestamp;
     }
 
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
-
-    public void setHttpStatus(HttpStatus httpStatus) {
-        this.httpStatus = httpStatus;
-    }
 }

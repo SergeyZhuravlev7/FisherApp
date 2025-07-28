@@ -8,6 +8,7 @@ Sergey Zhuravlev
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -52,5 +53,10 @@ public class Fish {
 
     public void setPosts(List<Post> posts) {
         this.posts = posts;
+    }
+
+    public void addPost(Post post) {
+        if (this.posts == null) this.posts = new ArrayList<>();
+        this.posts.add(post);
     }
 }
