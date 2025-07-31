@@ -29,6 +29,13 @@ public class UserDTOOut {
     public UserDTOOut() {
     }
 
+    public UserDTOOut(String login, String name, int age, Gender gender) {
+        this.login = login;
+        this.name = name;
+        this.age = age;
+        this.gender = gender;
+    }
+
     public String getLogin() {
         return login;
     }

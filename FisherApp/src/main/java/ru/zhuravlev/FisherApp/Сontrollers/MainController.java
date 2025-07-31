@@ -5,6 +5,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -39,34 +41,24 @@ public class MainController {
         if (optionalUser.isPresent()) return modelMapper.map(optionalUser.get(), UserDTOOut.class);
         throw new UserNotFoundException();
     }
-
+    @PreAuthorize("#login == authentication.getName")
     @DeleteMapping("/{login}")
-    public ResponseEntity<HttpStatus> deleteUserProfile(@PathVariable String login, Authentication authentication) {
-        User user = getUserFromAuth(login, authentication);
-        userService.deleteUser(user);
+    public ResponseEntity<HttpStatus> deleteUserProfile(@PathVariable String login) {
+        userService.deleteUser(login);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
+    @PreAuthorize("#login == authentication.getName")
     @PostMapping("/{login}/posts")
-    public ResponseEntity<HttpStatus> addPost(@PathVariable String login, @RequestBody @Valid PostDTO postDTO, BindingResult bindingResult, Authentication authentication) {
+    public ResponseEntity<HttpStatus> addPost(@PathVariable String login, @RequestBody @Valid PostDTO postDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) throw new InvalidPostException(converter.convertToMessage(bindingResult));
-        User user = getUserFromAuth(login, authentication);
-        userService.addPost(user, modelMapper.map(postDTO, Post.class));
+        userService.addPost(login, modelMapper.map(postDTO, Post.class));
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
+    @PreAuthorize("#login == authentication.getName")
     @DeleteMapping("/{login}/posts/{postId}")
-    public ResponseEntity<HttpStatus> deletePost(@PathVariable String login, @PathVariable int postId, Authentication authentication) {
-        User user = getUserFromAuth(login, authentication);
-        userService.deletePost(user, postId);
+    public ResponseEntity<HttpStatus> deletePost(@PathVariable String login, @PathVariable int postId) {
+        userService.deletePost(login, postId);
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    public User getUserFromAuth(String login, Authentication authentication) {
-        if (authentication.getName().equals(login)) {
-            return ((UserImpl)authentication.getPrincipal()).getUser();
-        }
-        throw new UserDoesNotHaveRightsException("Отсутствует доступ к этой странице.");
     }
 
     @ExceptionHandler
@@ -75,7 +67,13 @@ public class MainController {
     }
 
     @ExceptionHandler
-    public ResponseEntity<UserErrorResponse> exceptionHandler(UserDoesNotHaveRightsException ex) {
-        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<PostErrorResponse> exceptionHandler(InvalidPostException ex) {
+        return new ResponseEntity<>(new PostErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<PostErrorResponse> exceptionHandler(BadCredentialsException ex) {
+        return new ResponseEntity<>(new PostErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+    }
+       
 }

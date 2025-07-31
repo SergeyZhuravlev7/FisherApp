@@ -7,6 +7,7 @@ Sergey Zhuravlev
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
