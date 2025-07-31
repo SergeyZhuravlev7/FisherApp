@@ -5,14 +5,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
 import ru.zhuravlev.FisherApp.Configuration.Security.AuthManager;
 import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
@@ -30,7 +28,6 @@ public class AuthController {
     private final UserService userService;
     private final BindingResultConverter converter;
     private final ModelMapper modelMapper;
-    private final PasswordEncoder passwordEncoder;
     private final AuthManager authenticationManager;
 
     @Autowired
@@ -39,7 +36,6 @@ public class AuthController {
         this.userService = userService;
         this.converter = converter;
         this.modelMapper = modelMapper;
-        this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
     }
 
@@ -66,12 +62,12 @@ public class AuthController {
     }
 
     @ExceptionHandler
-    public UserErrorResponse exceptionHandler(InvalidUserException ex) {
-        return new UserErrorResponse(ex.getMessage(), System.currentTimeMillis(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<UserErrorResponse> exceptionHandler(InvalidUserException ex) {
+        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
-    public UserErrorResponse exceptionHandler(UserAlreadyExistException ex) {
-        return new UserErrorResponse(ex.getMessage(), System.currentTimeMillis(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<UserErrorResponse>  exceptionHandler(UserAlreadyExistException ex) {
+        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
     }
 }

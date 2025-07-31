@@ -1,6 +1,7 @@
 package ru.zhuravlev.FisherApp.DTOs;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ public class PostDTO {
 
     private int id;
 
+    @NotNull
     private FishDTO fish;
 
     @Min(value = 0, message = "Вес рыбы должен быть больше 0.")

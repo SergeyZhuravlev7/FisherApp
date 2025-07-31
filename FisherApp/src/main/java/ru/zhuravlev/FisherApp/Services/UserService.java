@@ -49,6 +49,7 @@ public class UserService {
         User user = userRepository.findByLogin(login).get();
         Hibernate.initialize(user.getPosts());
         Hibernate.initialize(user.getAchievements());
+        for (Post p : user.getPosts()) Hibernate.initialize(p.getFish());
         return user;
     }
 
@@ -58,22 +59,27 @@ public class UserService {
     }
 
     @Transactional
-    public void addPost(User user, Post post) {
+    public void addPost(String login, Post post) {
+        User user = findByLogin(login).get();
+        Hibernate.initialize(user.getPosts());
         postService.setFish(post);
         user.addPost(post);
     }
 
     @Transactional
-    public void deletePost(User user, int postId) {
+    public void deletePost(String login, int postId) {
         Optional<Post> optionalPost = postService.findById(postId);
         if (optionalPost.isEmpty()) return;
         Post post = optionalPost.get();
+        User user = findByLogin(login).get();
         user.deletePost(post);
         postService.delete(post);
     }
 
     @Transactional
-    public void deleteUser(User user) {
+    public void deleteUser(String login) {
+        User user = userRepository.findByLogin(login).get();
+        Hibernate.initialize(user.getPosts());
         for (Post p : user.getPosts()) p.setUser(null);
         userRepository.delete(user);
     }
