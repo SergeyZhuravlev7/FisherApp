@@ -1,8 +1,7 @@
 package ru.zhuravlev.FisherApp.DTOs;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import ru.zhuravlev.FisherApp.Models.Fish;
 
 import java.math.BigDecimal;
 
@@ -11,19 +10,20 @@ public class PostDTO {
 
     private int id;
 
-    @NotNull
-    private FishDTO fish;
+    @Pattern(regexp = "[А-Яа-я]{0,15}", message = "Название рыбы должно состоять из русских букв и быть длиной менее 15 символов.")
+    private String fish;
 
     @Min(value = 0, message = "Вес рыбы должен быть больше 0.")
     private BigDecimal fish_weight;
 
-    @Size(min = 1, max = 300, message = "Сообщение должено быть длиной от 1 до 300 символов.")
+    @NotNull(message = "Сообщение не должно быть пустым.")
+    @Size(min = 1, max = 300, message = "Сообщение должно быть длиной от 1 до 300 символов.")
     private String message;
 
     public PostDTO() {
     }
 
-    public PostDTO(FishDTO fish, BigDecimal fish_weight, String message) {
+    public PostDTO(String fish, BigDecimal fish_weight, String message) {
         this.fish = fish;
         this.fish_weight = fish_weight;
         this.message = message;
@@ -37,11 +37,11 @@ public class PostDTO {
         this.id = id;
     }
 
-    public FishDTO getFish() {
+    public String getFish() {
         return fish;
     }
 
-    public void setFish(FishDTO fish) {
+    public void setFish(String fish) {
         this.fish = fish;
     }
 

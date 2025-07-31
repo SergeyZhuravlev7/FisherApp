@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import ru.zhuravlev.FisherApp.Configuration.Security.UserImpl;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
@@ -18,6 +19,7 @@ import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 @RestController
@@ -50,7 +52,8 @@ public class MainController {
     @PreAuthorize("#login == authentication.getName")
     @PostMapping("/{login}/posts")
     public ResponseEntity<HttpStatus> addPost(@PathVariable String login, @RequestBody @Valid PostDTO postDTO, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) throw new InvalidPostException(converter.convertToMessage(bindingResult));
+        for(FieldError error : bindingResult.getFieldErrors()) System.out.println(error.getField() + "  -  " + error.getDefaultMessage());
+        if (bindingResult.hasErrors()) throw new PostFieldsException(converter.convertToMessage(bindingResult));
         userService.addPost(login, modelMapper.map(postDTO, Post.class));
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -67,8 +70,9 @@ public class MainController {
     }
 
     @ExceptionHandler
-    public ResponseEntity<PostErrorResponse> exceptionHandler(InvalidPostException ex) {
-        return new ResponseEntity<>(new PostErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<HashMap<String,String>> exceptionHandler(PostFieldsException ex) {
+        System.out.println(ex.getErrors());
+        return new ResponseEntity<>(ex.getErrors(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler

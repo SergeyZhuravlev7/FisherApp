@@ -12,8 +12,8 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.validation.BindingResult;
-import ru.zhuravlev.FisherApp.DTOs.FishDTO;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
 import ru.zhuravlev.FisherApp.Models.Gender;
@@ -42,12 +42,6 @@ class MainControllerIntegrationTest {
     @MockitoBean
     private UserService userService;
 
-    @MockitoBean
-    private BindingResultConverter bindingResultConverter;
-
-    @MockitoBean
-    private BindingResult bindingResult;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private User testUser;
@@ -59,7 +53,7 @@ class MainControllerIntegrationTest {
     void setUp() {
         testUser = new User("loginnnn", "password", "TestName", 30, Gender.MALE);
         testUserDTO = new UserDTOOut("loginnnn", "TestName", 30, Gender.MALE);
-        validPostDTO = new PostDTO(new FishDTO("Щука"), BigDecimal.valueOf(18), "Тестовое сообщение");
+        validPostDTO = new PostDTO("Щука", BigDecimal.valueOf(18), "Тестовое сообщение");
         invalidPostDTO = new PostDTO();
     }
 
@@ -77,7 +71,7 @@ class MainControllerIntegrationTest {
     }
 
     @Test
-    void getUserProfileWithNotExistingUser() throws Exception {
+    void getUserProfileWithoutExistingUser() throws Exception {
         String notExistingLogin = "NotExistingLogin";
         when(userService.findByLogin(notExistingLogin)).thenReturn(Optional.empty());
         mockMvc.perform(get("/api/users/" + notExistingLogin).with(anonymous()).accept(MediaType.APPLICATION_JSON))
@@ -157,12 +151,12 @@ class MainControllerIntegrationTest {
     @Test
     @WithMockUser(username = "loginnnn")
     void addInvalidPostWithAuth() throws Exception {
-        mockMvc.perform(post("/api/users/loginnnn/posts")
+        MvcResult result = mockMvc.perform(post("/api/users/loginnnn/posts")
                         .content(objectMapper.writeValueAsString(invalidPostDTO))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError())
+                .andExpect(status().is(400))
                 .andExpect(jsonPath("message").hasJsonPath())
-                .andExpect(jsonPath("timestamp").hasJsonPath());
+                .andReturn();
     }
 
     @Test

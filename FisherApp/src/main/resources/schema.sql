@@ -2,7 +2,6 @@
 
 DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS achievements;
-DROP TABLE IF EXISTS fish;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS user_achievements;
 
@@ -12,14 +11,8 @@ password_hash VARCHAR(255),
 name VARCHAR(30) check(LENGTH(name) > 2 & LENGTH(name) < 31),
 age SMALLINT check (age > 12 & age < 100),
 gender ENUM('MALE', 'FEMALE'),
-post_id int,
-achievement_id int,
 created_at TIMESTAMP,
 role VARCHAR(30),
-PRIMARY KEY (id));
-
-CREATE TABLE IF NOT EXISTS fish(id SMALLINT AUTO_INCREMENT,
-name VARCHAR (40),
 PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS achievements(id SMALLINT AUTO_INCREMENT,
@@ -29,13 +22,11 @@ PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS posts (id INT AUTO_INCREMENT,
 user_id INT,
-fish_id SMALLINT,
+fish VARCHAR(15),
 fish_weight DECIMAL(4,2),
 message VARCHAR(300),
 PRIMARY KEY (id),
-FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-FOREIGN KEY (fish_id) REFERENCES fish(id)
-);
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL);
 
 CREATE TABLE IF NOT EXISTS user_achievements(user_id INT,
 achievement_id SMALLINT,

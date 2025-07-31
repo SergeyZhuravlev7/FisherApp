@@ -20,7 +20,7 @@ public class User {
     private int id;
 
     @NotNull
-    @Size(min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символом")
+    @Size(min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символов.")
     @NotBlank
     private String login;
 
@@ -28,21 +28,21 @@ public class User {
     private String password;
 
     @NotNull
-    @Size(min = 3, max = 30, message = "Длина имени должна быть от 3 до 30 символов")
+    @Size(min = 3, max = 30, message = "Длина имени должна быть от 3 до 30 символов.")
     private String name;
 
-    @Min(value = 12, message = "Пользователь должен быть старше 12 лет.")
-    @Max(value = 100, message = "Пользователь должен быть моложе 100 лет")
+    @Min(value = 12, message = "Возраст должен быть больше 12 лет.")
+    @Max(value = 100, message = "Возраст должен быть меньше 100 лет.")
     private int age;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Post> posts;
 
-    @ManyToMany(mappedBy = "users", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "users", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Achievement> achievements;
 
     @Transient

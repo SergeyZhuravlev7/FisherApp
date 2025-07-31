@@ -5,58 +5,57 @@ package ru.zhuravlev.FisherApp.Models;
 Sergey Zhuravlev
 */
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
-@Entity
-public class Fish {
+public enum Fish {
+    FISH1("Щука"),
+    FISH2("Окунь"),
+    FISH3("Сом"),
+    FISH4("Плотва"),
+    FISH5("Лещ"),
+    FISH6("Карась"),
+    FISH7("Сазан"),
+    FISH8("Судак"),
+    FISH9("Налим"),
+    FISH10("Хариус"),
+    FISH11("Жерех"),
+    FISH12("Язь"),
+    FISH13("Голавль"),
+    FISH14("Линь"),
+    FISH15("Муксун"),
+    FISH16("Нельма"),
+    FISH17("Ряпушка"),
+    FISH18("Ротан"),
+    FISH19("Горчак"),
+    FISH20("Белый амур"),
+    FISH21("Толстолобик"),
+    FISH22("Чехонь"),
+    FISH23("Подуст"),
+    FISH24("Уклейка"),
+    FISH25("Бычок"),
+    FISH26("Сельдь"),
+    FISH27("Севрюга"),
+    FISH28("Осётр"),
+    FISH29("Форель"),
+    FISH30("Сиг"),
+    FISH31("Лосось");
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private final String displayName;
 
-    @Size(max = 40, message = "Название рыбы не должено превышать 40 символов")
-    private String name;
-
-    @OneToMany(mappedBy = "fish")
-    private List<Post> posts;
-
-    public Fish() {
+    Fish(String displayName) {
+        this.displayName = displayName;
     }
 
-    public Fish(String name) {
-        this.name = name;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public int getId() {
-        return id;
-    }
+    public static final List<String> list = Stream.of(Fish.values()).map(Fish::getDisplayName).sorted().toList();
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<Post> getPosts() {
-        return posts;
-    }
-
-    public void setPosts(List<Post> posts) {
-        this.posts = posts;
-    }
-
-    public void addPost(Post post) {
-        if (this.posts == null) this.posts = new ArrayList<>();
-        this.posts.add(post);
+    public List<String> getFishNames() {
+        return list;
     }
 }
+
