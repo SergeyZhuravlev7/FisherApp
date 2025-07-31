@@ -11,8 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import ru.zhuravlev.FisherApp.DTOs.FishDTO;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
 import ru.zhuravlev.FisherApp.Models.Gender;
@@ -22,7 +20,7 @@ import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
 
 import java.math.BigDecimal;
-import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -52,7 +50,7 @@ class MainControllerTest {
     void setUp() {
         user = new User("login", "password", "name", 30, Gender.MALE);
         userDTOOut = new UserDTOOut("login", "name", 30, Gender.MALE);
-        postDTO = new PostDTO(new FishDTO("Щука"), new BigDecimal(10), "Test message");
+        postDTO = new PostDTO("Щука", new BigDecimal(10), "Test message");
     }
 
 
@@ -99,7 +97,7 @@ class MainControllerTest {
     void addInvalidPost() {
         when(bindingResult.hasErrors()).thenReturn(true);
 
-        assertThrows(InvalidPostException.class, () -> mainController.addPost("login", postDTO, bindingResult));
+        assertThrows(PostFieldsException.class, () -> mainController.addPost("login", postDTO, bindingResult));
     }
 
     @Test
@@ -122,14 +120,15 @@ class MainControllerTest {
     }
 
     @Test
-    void InvalidPostExceptionExceptionHandler() {
-        InvalidPostException exception = new InvalidPostException("Invalid user exception");
+    void PostFieldsExceptionHandler() {
+        HashMap<String,String> map = new HashMap<>();
+        map.put("message", "message Message");
+        PostFieldsException exception = new PostFieldsException(map);
 
-        ResponseEntity<PostErrorResponse> response = mainController.exceptionHandler(exception);
+        ResponseEntity<HashMap<String,String>> response = mainController.exceptionHandler(exception);
 
         assertEquals(400, response.getStatusCode().value());
-        assertEquals(response.getBody().getMessage(), exception.getMessage());
-        assertTrue(response.getBody().getTimestamp() > 0);
+        assertEquals(response.getBody().get("message"), "message Message");
     }
 
     @Test

@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 public class LoginDTO {
 
     @NotNull
-    @Size(min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символом")
+    @Size(min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символов")
     @NotBlank(message = "Логин не может состоять из пробелов.")
     private String login;
 

@@ -9,17 +9,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.hibernate.Hibernate;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
-import ru.zhuravlev.FisherApp.Models.Fish;
 import ru.zhuravlev.FisherApp.Models.Post;
 import ru.zhuravlev.FisherApp.Models.User;
-import ru.zhuravlev.FisherApp.Repos.FishRepository;
 import ru.zhuravlev.FisherApp.Repos.UserRepository;
 
 import java.util.Optional;
@@ -62,7 +55,6 @@ public class UserService {
     public void addPost(String login, Post post) {
         User user = findByLogin(login).get();
         Hibernate.initialize(user.getPosts());
-        postService.setFish(post);
         user.addPost(post);
     }
 

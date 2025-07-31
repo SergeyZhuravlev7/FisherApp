@@ -13,7 +13,7 @@ public class UserDTOIn {
     private String login;
 
     @NotNull
-    @Size(min = 3, max = 30, message = "Длина имени должна быть от 3 до 30 символов")
+    @Pattern(regexp = "[А-Яа-я]{3,15}", message = "Имя должно состоять из символов русского алфавита и быть длиной от 3 до 15 символов.")
     @NotBlank(message = "Имя не может состоять из пробелов.")
     private String name;
 

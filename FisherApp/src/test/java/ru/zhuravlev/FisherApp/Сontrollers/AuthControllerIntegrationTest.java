@@ -74,7 +74,7 @@ class AuthControllerIntegrationTest {
     }
     @Test
     @WithAnonymousUser
-    void registrationWithValidUsernameAndValidPost() throws Exception {
+    void registrationWithValidUsername() throws Exception {
         when(userService.findByLogin("TestLogin")).thenReturn(Optional.empty());
         mockMvc.perform(post("/api/auth/registration")
                         .content(objectMapper.writeValueAsString(validUserDTO))
@@ -84,14 +84,17 @@ class AuthControllerIntegrationTest {
 
     @Test
     @WithAnonymousUser
-    void registrationWithValidUsernameAndInvalidPost() throws Exception {
+    void registrationWithInvalidUsername() throws Exception {
         when(userService.findByLogin("TestLogin")).thenReturn(Optional.empty());
         mockMvc.perform(post("/api/auth/registration")
                         .content(objectMapper.writeValueAsString(invalidUserDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError())
-                .andExpect(jsonPath("message").hasJsonPath())
-                .andExpect(jsonPath("timestamp").hasJsonPath());
+                .andExpect(jsonPath("login").hasJsonPath())
+                .andExpect(jsonPath("name").hasJsonPath())
+                .andExpect(jsonPath("age").hasJsonPath())
+                .andExpect(jsonPath("gender").hasJsonPath())
+                .andExpect(jsonPath("password").hasJsonPath());
     }
 
     @Test

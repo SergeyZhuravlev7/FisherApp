@@ -20,11 +20,9 @@ import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
-import ru.zhuravlev.FisherApp.Util.BindingResultConverter;
-import ru.zhuravlev.FisherApp.Util.InvalidUserException;
-import ru.zhuravlev.FisherApp.Util.UserAlreadyExistException;
-import ru.zhuravlev.FisherApp.Util.UserErrorResponse;
+import ru.zhuravlev.FisherApp.Util.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,7 +81,7 @@ class AuthControllerUnitTest {
         when(userService.findByLogin(userDTOIn.getLogin())).thenReturn(Optional.empty());
         when(bindingResult.hasErrors()).thenReturn(true);
 
-        assertThrows(InvalidUserException.class, () -> authController.registration(userDTOIn, bindingResult));
+        assertThrows(UserFieldsException.class, () -> authController.registration(userDTOIn, bindingResult));
     }
 
     @Test
@@ -99,7 +97,7 @@ class AuthControllerUnitTest {
     void loginWithInvalidUser() {
         when(bindingResult.hasErrors()).thenReturn(true);
 
-        assertThrows(InvalidUserException.class, () -> authController.login(new LoginDTO(), bindingResult));
+        assertThrows(UserFieldsException.class, () -> authController.login(new LoginDTO(), bindingResult));
     }
 
     @Test
@@ -113,12 +111,13 @@ class AuthControllerUnitTest {
     }
 
     @Test
-    void  invalidUserExceptionHandler() {
-        InvalidUserException exception = new InvalidUserException("name - blablabla\n");
-        ResponseEntity<UserErrorResponse> response = authController.exceptionHandler(exception);
+    void  UserFieldsExceptionHandler() {
+        HashMap<String,String> map = new HashMap<>();
+        map.put("login", "loginMessage");
+        UserFieldsException exception = new UserFieldsException(map);
+        ResponseEntity<HashMap<String,String>> response = authController.exceptionHandler(exception);
         assertEquals(400, response.getStatusCode().value());
-        assertEquals("name - blablabla\n", response.getBody().getMessage());
-        assertTrue(response.getBody().getTimestamp() > 0);
+        assertEquals("loginMessage", response.getBody().get("login"));
     }
 
     @Test

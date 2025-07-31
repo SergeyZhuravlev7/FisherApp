@@ -16,10 +16,9 @@ import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
-import ru.zhuravlev.FisherApp.Util.BindingResultConverter;
-import ru.zhuravlev.FisherApp.Util.InvalidUserException;
-import ru.zhuravlev.FisherApp.Util.UserAlreadyExistException;
-import ru.zhuravlev.FisherApp.Util.UserErrorResponse;
+import ru.zhuravlev.FisherApp.Util.*;
+
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -42,7 +41,7 @@ public class AuthController {
     @PostMapping("/registration")
     public ResponseEntity<HttpStatus> registration(@RequestBody @Valid UserDTOIn userDTOIn, BindingResult bindingResult) {
         if (userService.findByLogin(userDTOIn.getLogin()).isPresent()) throw new UserAlreadyExistException();
-        if (bindingResult.hasErrors()) throw new InvalidUserException(converter.convertToMessage(bindingResult));
+        if (bindingResult.hasErrors()) throw new UserFieldsException(converter.convertToMessage(bindingResult));
         User user = modelMapper.map(userDTOIn, User.class);
         userService.save(user);
         return new ResponseEntity<>(HttpStatus.OK);
@@ -50,24 +49,29 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<HttpStatus> login(@RequestBody @Valid LoginDTO loginDTO, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) throw new InvalidUserException(converter.convertToMessage(bindingResult));
+        if (bindingResult.hasErrors()) throw new UserFieldsException(converter.convertToMessage(bindingResult));
         try {
             Authentication authentication = authenticationManager.authenticate
                     (new UsernamePasswordAuthenticationToken(loginDTO.getLogin(), loginDTO.getPassword()));
         }
         catch (BadCredentialsException e) {
-            throw new InvalidUserException(e.getMessage());
+            throw new BadCredentialsException(e.getMessage());
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @ExceptionHandler
-    public ResponseEntity<UserErrorResponse> exceptionHandler(InvalidUserException ex) {
-        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<HashMap<String,String>> exceptionHandler(UserFieldsException ex) {
+        return new ResponseEntity<>(ex.getErrors(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
     public ResponseEntity<UserErrorResponse>  exceptionHandler(UserAlreadyExistException ex) {
+        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<UserErrorResponse>  exceptionHandler(BadCredentialsException ex) {
         return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
     }
 }
