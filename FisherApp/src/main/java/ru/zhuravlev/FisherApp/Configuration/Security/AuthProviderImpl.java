@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthProviderImpl implements AuthenticationProvider {
 
-    UserDetailsServiceImpl userDetailsService;
+    CustomUserDetailsService userDetailsService;
     PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthProviderImpl(UserDetailsServiceImpl userDetailsService, PasswordEncoder passwordEncoder) {
+    public AuthProviderImpl(CustomUserDetailsService userDetailsService,PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }

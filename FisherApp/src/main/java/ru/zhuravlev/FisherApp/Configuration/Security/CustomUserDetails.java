@@ -9,11 +9,11 @@ import java.util.Collection;
 import java.util.List;
 
 
-public class UserImpl implements UserDetails {
+public class CustomUserDetails implements UserDetails {
 
     private final User user;
 
-    public UserImpl(User user) {
+    public CustomUserDetails(User user) {
         this.user = user;
     }
 

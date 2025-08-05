@@ -7,11 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import ru.zhuravlev.FisherApp.Configuration.Security.UserImpl;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
 import ru.zhuravlev.FisherApp.Models.Post;
@@ -23,7 +20,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping ("/api/users")
 public class MainController {
 
     private final UserService userService;
@@ -31,53 +28,55 @@ public class MainController {
     private final BindingResultConverter converter;
 
     @Autowired
-    public MainController(UserService userService, ModelMapper modelMapper, BindingResultConverter converter) {
+    public MainController(UserService userService,ModelMapper modelMapper,BindingResultConverter converter) {
         this.userService = userService;
         this.modelMapper = modelMapper;
         this.converter = converter;
     }
 
-    @GetMapping("/{login}")
+    @GetMapping ("/{login}")
     public UserDTOOut getUserProfile(@PathVariable String login) {
         Optional<User> optionalUser = userService.findByLogin(login);
-        if (optionalUser.isPresent()) return modelMapper.map(optionalUser.get(), UserDTOOut.class);
+        if (optionalUser.isPresent()) return modelMapper.map(optionalUser.get(),UserDTOOut.class);
         throw new UserNotFoundException();
     }
-    @PreAuthorize("#login == authentication.getName")
-    @DeleteMapping("/{login}")
+
+    @PreAuthorize ("#login == authentication.getName")
+    @DeleteMapping ("/{login}")
     public ResponseEntity<HttpStatus> deleteUserProfile(@PathVariable String login) {
         userService.deleteUser(login);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    @PreAuthorize("#login == authentication.getName")
-    @PostMapping("/{login}/posts")
-    public ResponseEntity<HttpStatus> addPost(@PathVariable String login, @RequestBody @Valid PostDTO postDTO, BindingResult bindingResult) {
-        for(FieldError error : bindingResult.getFieldErrors()) System.out.println(error.getField() + "  -  " + error.getDefaultMessage());
+
+    @PreAuthorize ("#login == authentication.getName")
+    @PostMapping ("/{login}/posts")
+    public ResponseEntity<HttpStatus> addPost(@PathVariable String login,@RequestBody @Valid PostDTO postDTO,BindingResult bindingResult) {
         if (bindingResult.hasErrors()) throw new PostFieldsException(converter.convertToMessage(bindingResult));
-        userService.addPost(login, modelMapper.map(postDTO, Post.class));
+        userService.addPost(login,modelMapper.map(postDTO,Post.class));
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    @PreAuthorize("#login == authentication.getName")
-    @DeleteMapping("/{login}/posts/{postId}")
-    public ResponseEntity<HttpStatus> deletePost(@PathVariable String login, @PathVariable int postId) {
-        userService.deletePost(login, postId);
+
+    @PreAuthorize ("#login == authentication.getName")
+    @DeleteMapping ("/{login}/posts/{postId}")
+    public ResponseEntity<HttpStatus> deletePost(@PathVariable String login,@PathVariable int postId) {
+        userService.deletePost(login,postId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @ExceptionHandler
     public ResponseEntity<UserErrorResponse> exceptionHandler(UserNotFoundException ex) {
-        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(),System.currentTimeMillis()),HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
-    public ResponseEntity<HashMap<String,String>> exceptionHandler(PostFieldsException ex) {
+    public ResponseEntity<HashMap<String, String>> exceptionHandler(PostFieldsException ex) {
         System.out.println(ex.getErrors());
-        return new ResponseEntity<>(ex.getErrors(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ex.getErrors(),HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
     public ResponseEntity<PostErrorResponse> exceptionHandler(BadCredentialsException ex) {
-        return new ResponseEntity<>(new PostErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new PostErrorResponse(ex.getMessage(),System.currentTimeMillis()),HttpStatus.BAD_REQUEST);
     }
-       
+
 }
