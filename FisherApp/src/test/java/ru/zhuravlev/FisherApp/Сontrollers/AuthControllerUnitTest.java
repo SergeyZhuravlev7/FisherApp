@@ -19,11 +19,13 @@ import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
+import ru.zhuravlev.FisherApp.Services.JWTService;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,6 +52,9 @@ class AuthControllerUnitTest {
 
     @Mock
     private AuthProviderImpl authProvider;
+
+    @Mock
+    private JWTService jwtService;
 
     @InjectMocks
     private AuthController authController;
@@ -105,9 +110,12 @@ class AuthControllerUnitTest {
         when(bindingResult.hasErrors()).thenReturn(false);
         when(authenticationManager.authenticate(any())).thenReturn(mock(Authentication.class));
 
-        ResponseEntity<HttpStatus> response = authController.login(new LoginDTO(), bindingResult);
+        ResponseEntity<Map<String,String>> response = authController.login(new LoginDTO(), bindingResult);
 
         assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().containsKey("AccessToken"));
+        assertTrue(response.getBody().containsKey("RefreshToken"));
     }
 
     @Test

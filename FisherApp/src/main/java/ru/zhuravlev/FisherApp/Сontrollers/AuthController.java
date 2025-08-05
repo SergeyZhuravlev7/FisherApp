@@ -12,13 +12,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.zhuravlev.FisherApp.Configuration.Security.AuthManager;
+import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
 import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
+import ru.zhuravlev.FisherApp.DTOs.TokenDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
 import ru.zhuravlev.FisherApp.Models.User;
+import ru.zhuravlev.FisherApp.Services.JWTService;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,14 +33,16 @@ public class AuthController {
     private final BindingResultConverter converter;
     private final ModelMapper modelMapper;
     private final AuthManager authenticationManager;
+    private final JWTService jwtService;
 
     @Autowired
     public AuthController(UserService userService, BindingResultConverter converter, ModelMapper modelMapper,
-                          PasswordEncoder passwordEncoder, AuthManager authenticationManager) {
+                          PasswordEncoder passwordEncoder, AuthManager authenticationManager, JWTService jwtService) {
         this.userService = userService;
         this.converter = converter;
         this.modelMapper = modelMapper;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/registration")
@@ -48,16 +55,27 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<HttpStatus> login(@RequestBody @Valid LoginDTO loginDTO, BindingResult bindingResult) {
+    public ResponseEntity<Map<String, String>> login(@RequestBody @Valid LoginDTO loginDTO,BindingResult bindingResult) {
         if (bindingResult.hasErrors()) throw new UserFieldsException(converter.convertToMessage(bindingResult));
+        Map<String,String> keys = new TreeMap<>();
         try {
             Authentication authentication = authenticationManager.authenticate
                     (new UsernamePasswordAuthenticationToken(loginDTO.getLogin(), loginDTO.getPassword()));
+            keys.put("AccessToken", jwtService.createAccessToken((CustomUserDetails) authentication.getPrincipal()));
+            keys.put("RefreshToken", jwtService.createRefreshToken((CustomUserDetails) authentication.getPrincipal()));
         }
         catch (BadCredentialsException e) {
             throw new BadCredentialsException(e.getMessage());
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(keys, HttpStatus.OK);
+    }
+
+    @PostMapping("/token")
+    public ResponseEntity<Map<String, String>> refreshAccessToken(@RequestBody TokenDTO token) {
+        if (jwtService.isValidRefreshToken(token.getRefreshToken()))
+
+            return new ResponseEntity<>(Map.of("AccessToken",jwtService.createAccessToken(token.getRefreshToken())), HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler

@@ -12,19 +12,19 @@ import ru.zhuravlev.FisherApp.Services.UserService;
 import java.util.Optional;
 
 @Component
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserService userService;
 
     @Autowired
-    public UserDetailsServiceImpl(UserService userService) {
+    public CustomUserDetailsService(UserService userService) {
         this.userService = userService;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> optionalUser = userService.findByLogin(username);
-        if (optionalUser.isPresent()) return new UserImpl(optionalUser.get());
+        if (optionalUser.isPresent()) return new CustomUserDetails(optionalUser.get());
         throw new BadCredentialsException("Учетные данные не верны.");
     }
 }
