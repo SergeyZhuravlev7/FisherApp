@@ -1,5 +1,6 @@
 package ru.zhuravlev.FisherApp.Сontrollers;
 
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,7 +17,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.validation.BindingResult;
 import ru.zhuravlev.FisherApp.Configuration.Security.AuthManager;
 import ru.zhuravlev.FisherApp.Configuration.Security.AuthProviderImpl;
+import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
 import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
+import ru.zhuravlev.FisherApp.DTOs.TokenDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
@@ -107,8 +111,12 @@ class AuthControllerUnitTest {
 
     @Test
     void loginWithValidUser() {
+        Authentication authentication = mock(Authentication.class);
         when(bindingResult.hasErrors()).thenReturn(false);
-        when(authenticationManager.authenticate(any())).thenReturn(mock(Authentication.class));
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(mock(CustomUserDetails.class));
+        when(jwtService.createAccessToken(any(CustomUserDetails.class))).thenReturn("TestAccessToken");
+        when(jwtService.createRefreshToken(any(CustomUserDetails.class))).thenReturn("TestRefreshToken");
 
         ResponseEntity<Map<String,String>> response = authController.login(new LoginDTO(), bindingResult);
 
@@ -119,11 +127,45 @@ class AuthControllerUnitTest {
     }
 
     @Test
+    void refreshTokenWithValidToken() {
+        TokenDTO token = new TokenDTO();
+        token.setRefreshToken("TestRefreshToken");
+        when(jwtService.isValidRefreshToken(token.getRefreshToken())).thenReturn(true);
+        when(jwtService.createAccessToken(token.getRefreshToken())).thenReturn("NewTestAccessToken");
+
+        ResponseEntity<Map<String,String>> result = authController.refreshAccessToken(token);
+
+        assertEquals(200, result.getStatusCode().value());
+        assertNotNull(result.getBody());
+        assertEquals("NewTestAccessToken", result.getBody().get("AccessToken"));
+    }
+
+    @Test
+    void refreshTokenWithInvalidToken() {
+        TokenDTO token = new TokenDTO();
+        token.setRefreshToken("TestRefreshToken");
+        when(jwtService.isValidRefreshToken(token.getRefreshToken())).thenReturn(false);
+
+        ResponseEntity<Map<String,String>> result = authController.refreshAccessToken(token);
+
+        assertEquals(401, result.getStatusCode().value());
+        assertNull(result.getBody());
+    }
+
+    @Test
+    void refreshTokenWithThrowException() {
+        TokenDTO token = new TokenDTO();
+        token.setRefreshToken("TestRefreshToken");
+        when(jwtService.isValidRefreshToken(token.getRefreshToken())).thenThrow(JWTDecodeException.class);
+        assertThrows(JWTDecodeException.class, () -> authController.refreshAccessToken(token));
+    }
+
+    @Test
     void  UserFieldsExceptionHandler() {
         HashMap<String,String> map = new HashMap<>();
         map.put("login", "loginMessage");
         UserFieldsException exception = new UserFieldsException(map);
-        ResponseEntity<HashMap<String,String>> response = authController.exceptionHandler(exception);
+        ResponseEntity<Map<String,String>> response = authController.exceptionHandler(exception);
         assertEquals(400, response.getStatusCode().value());
         assertEquals("loginMessage", response.getBody().get("login"));
     }
@@ -133,6 +175,7 @@ class AuthControllerUnitTest {
         UserAlreadyExistException exception = new UserAlreadyExistException();
         ResponseEntity<UserErrorResponse> response = authController.exceptionHandler(exception);
         assertEquals(400, response.getStatusCode().value());
+        assertNotNull(response.getBody());
         assertEquals("Пользователь с таким логином уже зарегистрирован.", response.getBody().getMessage());
         assertTrue(response.getBody().getTimestamp() > 0);
     }
