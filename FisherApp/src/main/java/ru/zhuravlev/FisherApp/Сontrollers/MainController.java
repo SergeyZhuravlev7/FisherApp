@@ -70,7 +70,6 @@ public class MainController {
 
     @ExceptionHandler
     public ResponseEntity<HashMap<String, String>> exceptionHandler(PostFieldsException ex) {
-        System.out.println(ex.getErrors());
         return new ResponseEntity<>(ex.getErrors(),HttpStatus.BAD_REQUEST);
     }
 

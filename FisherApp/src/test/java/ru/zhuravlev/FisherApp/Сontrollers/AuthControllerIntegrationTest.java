@@ -1,5 +1,6 @@
 package ru.zhuravlev.FisherApp.Сontrollers;
 
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,16 +13,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
 import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
+import ru.zhuravlev.FisherApp.DTOs.TokenDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
+import ru.zhuravlev.FisherApp.Services.JWTService;
 import ru.zhuravlev.FisherApp.Services.UserService;
-
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -45,6 +49,9 @@ class AuthControllerIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoSpyBean
+    private JWTService jwtService;
 
     private UserDTOIn validUserDTO;
     private UserDTOIn invalidUserDTO;
@@ -74,7 +81,7 @@ class AuthControllerIntegrationTest {
     }
     @Test
     @WithAnonymousUser
-    void registrationWithValidUsername() throws Exception {
+    void registrationWithValidUser() throws Exception {
         when(userService.findByLogin("TestLogin")).thenReturn(Optional.empty());
         mockMvc.perform(post("/api/auth/registration")
                         .content(objectMapper.writeValueAsString(validUserDTO))
@@ -84,7 +91,7 @@ class AuthControllerIntegrationTest {
 
     @Test
     @WithAnonymousUser
-    void registrationWithInvalidUsername() throws Exception {
+    void registrationWithInvalidUser() throws Exception {
         when(userService.findByLogin("TestLogin")).thenReturn(Optional.empty());
         mockMvc.perform(post("/api/auth/registration")
                         .content(objectMapper.writeValueAsString(invalidUserDTO))
@@ -122,7 +129,9 @@ class AuthControllerIntegrationTest {
         mockMvc.perform(post("/api/auth/login")
                     .content(objectMapper.writeValueAsString(testLoginDTO))
                     .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("AccessToken").hasJsonPath())
+                .andExpect(jsonPath("RefreshToken").hasJsonPath());;
     }
 
     @Test
@@ -133,5 +142,51 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(testLoginDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void refreshTokenWithValidToken() throws Exception {
+        CustomUserDetails userDetails = new CustomUserDetails(testUser);
+        String stringToken = jwtService.createRefreshToken(userDetails);
+        TokenDTO validToken = new TokenDTO();
+        validToken.setRefreshToken(stringToken);
+
+        mockMvc.perform(post("/api/auth/token")
+                    .content(objectMapper.writeValueAsString(validToken))
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("AccessToken").hasJsonPath());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void refreshTokenWithInvalidToken() throws Exception {
+        CustomUserDetails userDetails = new CustomUserDetails(testUser);
+        String stringToken = jwtService.createRefreshToken(userDetails);
+        TokenDTO invalidToken = new TokenDTO();
+        invalidToken.setRefreshToken(stringToken);
+        when(jwtService.isValidRefreshToken(invalidToken.getRefreshToken())).thenReturn(false);
+
+        mockMvc.perform(post("/api/auth/token")
+                        .content(objectMapper.writeValueAsString(invalidToken))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(401))
+                .andExpect(jsonPath("AccessToken").doesNotHaveJsonPath());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void refreshTokenWithException() throws Exception {
+        String stringToken = "ActuallyInvalidToken";
+        TokenDTO invalidToken = new TokenDTO();
+        invalidToken.setRefreshToken(stringToken);
+
+        mockMvc.perform(post("/api/auth/token")
+                        .content(objectMapper.writeValueAsString(invalidToken))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("AccessToken").doesNotHaveJsonPath())
+                .andExpect(jsonPath("RefreshToken").hasJsonPath());
     }
 }

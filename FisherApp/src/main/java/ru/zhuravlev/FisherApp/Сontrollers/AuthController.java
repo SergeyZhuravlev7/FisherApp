@@ -1,5 +1,6 @@
 package ru.zhuravlev.FisherApp.Сontrollers;
 
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +20,16 @@ import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.JWTService;
 import ru.zhuravlev.FisherApp.Services.UserService;
-import ru.zhuravlev.FisherApp.Util.*;
+import ru.zhuravlev.FisherApp.Util.BindingResultConverter;
+import ru.zhuravlev.FisherApp.Util.UserAlreadyExistException;
+import ru.zhuravlev.FisherApp.Util.UserErrorResponse;
+import ru.zhuravlev.FisherApp.Util.UserFieldsException;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping ("/api/auth")
 public class AuthController {
 
     private final UserService userService;
@@ -36,8 +39,8 @@ public class AuthController {
     private final JWTService jwtService;
 
     @Autowired
-    public AuthController(UserService userService, BindingResultConverter converter, ModelMapper modelMapper,
-                          PasswordEncoder passwordEncoder, AuthManager authenticationManager, JWTService jwtService) {
+    public AuthController(UserService userService,BindingResultConverter converter,ModelMapper modelMapper,
+                          PasswordEncoder passwordEncoder,AuthManager authenticationManager,JWTService jwtService) {
         this.userService = userService;
         this.converter = converter;
         this.modelMapper = modelMapper;
@@ -45,51 +48,52 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    @PostMapping("/registration")
-    public ResponseEntity<HttpStatus> registration(@RequestBody @Valid UserDTOIn userDTOIn, BindingResult bindingResult) {
+    @PostMapping ("/registration")
+    public ResponseEntity<HttpStatus> registration(@RequestBody @Valid UserDTOIn userDTOIn,BindingResult bindingResult) {
         if (userService.findByLogin(userDTOIn.getLogin()).isPresent()) throw new UserAlreadyExistException();
         if (bindingResult.hasErrors()) throw new UserFieldsException(converter.convertToMessage(bindingResult));
-        User user = modelMapper.map(userDTOIn, User.class);
+        User user = modelMapper.map(userDTOIn,User.class);
         userService.save(user);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody @Valid LoginDTO loginDTO,BindingResult bindingResult) {
+    @PostMapping ("/login")
+    public ResponseEntity<Map<String, String>> login(@RequestBody @Valid LoginDTO loginDTO,BindingResult bindingResult) throws BadCredentialsException {
         if (bindingResult.hasErrors()) throw new UserFieldsException(converter.convertToMessage(bindingResult));
-        Map<String,String> keys = new TreeMap<>();
-        try {
-            Authentication authentication = authenticationManager.authenticate
-                    (new UsernamePasswordAuthenticationToken(loginDTO.getLogin(), loginDTO.getPassword()));
-            keys.put("AccessToken", jwtService.createAccessToken((CustomUserDetails) authentication.getPrincipal()));
-            keys.put("RefreshToken", jwtService.createRefreshToken((CustomUserDetails) authentication.getPrincipal()));
-        }
-        catch (BadCredentialsException e) {
-            throw new BadCredentialsException(e.getMessage());
-        }
-        return new ResponseEntity<>(keys, HttpStatus.OK);
+
+        Map<String, String> keys = new TreeMap<>();
+        Authentication authentication = authenticationManager.authenticate
+                (new UsernamePasswordAuthenticationToken(loginDTO.getLogin(),loginDTO.getPassword()));
+        keys.put("AccessToken",jwtService.createAccessToken((CustomUserDetails) authentication.getPrincipal()));
+        keys.put("RefreshToken",jwtService.createRefreshToken((CustomUserDetails) authentication.getPrincipal()));
+
+        return new ResponseEntity<>(keys,HttpStatus.OK);
     }
 
-    @PostMapping("/token")
-    public ResponseEntity<Map<String, String>> refreshAccessToken(@RequestBody TokenDTO token) {
+    @PostMapping ("/token")
+    public ResponseEntity<Map<String, String>> refreshAccessToken(@RequestBody TokenDTO token) throws JWTDecodeException {
         if (jwtService.isValidRefreshToken(token.getRefreshToken()))
-
-            return new ResponseEntity<>(Map.of("AccessToken",jwtService.createAccessToken(token.getRefreshToken())), HttpStatus.OK);
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Map.of("AccessToken",jwtService.createAccessToken(token.getRefreshToken())),HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler
-    public ResponseEntity<HashMap<String,String>> exceptionHandler(UserFieldsException ex) {
-        return new ResponseEntity<>(ex.getErrors(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Map<String, String>> exceptionHandler(UserFieldsException ex) {
+        return new ResponseEntity<>(ex.getErrors(),HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
-    public ResponseEntity<UserErrorResponse>  exceptionHandler(UserAlreadyExistException ex) {
-        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<UserErrorResponse> exceptionHandler(UserAlreadyExistException ex) {
+        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(),System.currentTimeMillis()),HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
-    public ResponseEntity<UserErrorResponse>  exceptionHandler(BadCredentialsException ex) {
-        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(), System.currentTimeMillis()), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<UserErrorResponse> exceptionHandler(BadCredentialsException ex) {
+        return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(),System.currentTimeMillis()),HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> exceptionHandler(JWTDecodeException ex) {
+        return new ResponseEntity<>(Map.of("RefreshToken","Токен не соответствует формату или кодировке."),HttpStatus.BAD_REQUEST);
     }
 }
