@@ -64,8 +64,8 @@ public class AuthController {
         Map<String, String> keys = new TreeMap<>();
         Authentication authentication = authenticationManager.authenticate
                 (new UsernamePasswordAuthenticationToken(loginDTO.getLogin(),loginDTO.getPassword()));
-        keys.put("AccessToken",jwtService.createAccessToken((CustomUserDetails) authentication.getPrincipal()));
-        keys.put("RefreshToken",jwtService.createRefreshToken((CustomUserDetails) authentication.getPrincipal()));
+        keys.put("accessToken",jwtService.createAccessToken((CustomUserDetails) authentication.getPrincipal()));
+        keys.put("refreshToken",jwtService.createRefreshToken((CustomUserDetails) authentication.getPrincipal()));
 
         return new ResponseEntity<>(keys,HttpStatus.OK);
     }
@@ -73,7 +73,7 @@ public class AuthController {
     @PostMapping ("/token")
     public ResponseEntity<Map<String, String>> refreshAccessToken(@RequestBody TokenDTO token) throws JWTDecodeException {
         if (jwtService.isValidRefreshToken(token.getRefreshToken()))
-            return new ResponseEntity<>(Map.of("AccessToken",jwtService.createAccessToken(token.getRefreshToken())),HttpStatus.OK);
+            return new ResponseEntity<>(Map.of("accessToken",jwtService.createAccessToken(token.getRefreshToken())),HttpStatus.OK);
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
@@ -94,6 +94,6 @@ public class AuthController {
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> exceptionHandler(JWTDecodeException ex) {
-        return new ResponseEntity<>(Map.of("RefreshToken","Токен не соответствует формату или кодировке."),HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(Map.of("refreshToken","Токен не соответствует формату или кодировке."),HttpStatus.BAD_REQUEST);
     }
 }

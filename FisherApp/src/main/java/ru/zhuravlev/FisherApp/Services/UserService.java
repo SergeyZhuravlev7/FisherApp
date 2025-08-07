@@ -32,7 +32,6 @@ public class UserService {
         this.postService = postService;
     }
 
-    @Transactional
     public Optional<User> findByLogin(String login) {
         return userRepository.findByLogin(login);
     }

@@ -6,12 +6,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +33,7 @@ class JWTServiceIntegrityTest {
     @BeforeEach
     void setUp() {
         testUser = new User("TestLogin", passwordEncoder.encode("password"), "Иван", 50, Gender.MALE);
-        testUserDetails = new CustomUserDetails(testUser);
+        testUserDetails = new CustomUserDetails(testUser.getLogin(), testUser.getPassword(), List.of(new SimpleGrantedAuthority(testUser.getRole())));
     }
 
     @Test
@@ -63,7 +65,6 @@ class JWTServiceIntegrityTest {
     @Test
     void getUsername() {
         String accessToken = jwtService.createAccessToken(testUserDetails);
-
         String subject = jwtService.getUsername(accessToken);
 
         assertEquals("TestLogin", subject);
@@ -72,6 +73,7 @@ class JWTServiceIntegrityTest {
     @Test
     void isValidAccessToken() {
         String accessToken = jwtService.createAccessToken(testUserDetails);
+
         assertTrue(jwtService.isValidAccessToken(accessToken, testUserDetails));
     }
 
@@ -87,6 +89,7 @@ class JWTServiceIntegrityTest {
                 .withClaim("ROLES", "ROLE_USER")
                 .withExpiresAt(new Date())
                 .sign(Algorithm.HMAC256("testkey"));
+
         assertFalse(jwtService.isValidAccessToken(accessToken, testUserDetails));
         assertTrue(JWT.decode(accessToken).getExpiresAt().before(new Date()));
     }
@@ -94,6 +97,7 @@ class JWTServiceIntegrityTest {
     @Test
     void isValidRefreshToken() {
         String refreshToken = jwtService.createRefreshToken(testUserDetails);
+
         assertTrue(jwtService.isValidAccessToken(refreshToken, testUserDetails));
     }
 

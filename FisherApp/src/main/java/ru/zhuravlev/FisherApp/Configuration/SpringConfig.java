@@ -19,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import ru.zhuravlev.FisherApp.Configuration.Security.CustomAuthenticationEntryPoint;
 import ru.zhuravlev.FisherApp.Configuration.Security.JWTAuthenticationFilter;
 
 @Configuration
@@ -28,10 +29,12 @@ import ru.zhuravlev.FisherApp.Configuration.Security.JWTAuthenticationFilter;
 public class SpringConfig {
 
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Autowired
-    public SpringConfig(JWTAuthenticationFilter jwtAuthenticationFilter) {
+    public SpringConfig(JWTAuthenticationFilter jwtAuthenticationFilter, CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
     }
 
     @Bean
@@ -48,8 +51,8 @@ public class SpringConfig {
                                 .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(basic -> basic.init(http))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthenticationEntryPoint));
         return http.build();
     }
 }
