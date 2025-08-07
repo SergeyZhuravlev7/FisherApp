@@ -63,6 +63,7 @@ class AuthControllerIntegrationTest {
         validUserDTO = new UserDTOIn("TestLogin", "Иван", "password", 50, Gender.MALE);
         invalidUserDTO = new UserDTOIn();
         testUser = new User("TestLogin", passwordEncoder.encode("password"), "Иван", 50, Gender.MALE);
+        testUser.setRole("USER");
         testLoginDTO = new LoginDTO();
         testLoginDTO.setLogin("TestLogin");
         testLoginDTO.setPassword("password");
@@ -130,8 +131,8 @@ class AuthControllerIntegrationTest {
                     .content(objectMapper.writeValueAsString(testLoginDTO))
                     .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("AccessToken").hasJsonPath())
-                .andExpect(jsonPath("RefreshToken").hasJsonPath());;
+                .andExpect(jsonPath("accessToken").hasJsonPath())
+                .andExpect(jsonPath("refreshToken").hasJsonPath());;
     }
 
     @Test
@@ -156,7 +157,7 @@ class AuthControllerIntegrationTest {
                     .content(objectMapper.writeValueAsString(validToken))
                     .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
-                .andExpect(jsonPath("AccessToken").hasJsonPath());
+                .andExpect(jsonPath("accessToken").hasJsonPath());
     }
 
     @Test
@@ -172,7 +173,7 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(invalidToken))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(401))
-                .andExpect(jsonPath("AccessToken").doesNotHaveJsonPath());
+                .andExpect(jsonPath("accessToken").doesNotHaveJsonPath());
     }
 
     @Test
@@ -186,7 +187,7 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(invalidToken))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
-                .andExpect(jsonPath("AccessToken").doesNotHaveJsonPath())
-                .andExpect(jsonPath("RefreshToken").hasJsonPath());
+                .andExpect(jsonPath("accessToken").doesNotHaveJsonPath())
+                .andExpect(jsonPath("refreshToken").hasJsonPath());
     }
 }

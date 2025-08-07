@@ -60,7 +60,6 @@ public class User {
         this.age = age;
         this.gender = gender;
         this.created_at = System.currentTimeMillis();
-        this.role = "USER";
     }
 
     @Override

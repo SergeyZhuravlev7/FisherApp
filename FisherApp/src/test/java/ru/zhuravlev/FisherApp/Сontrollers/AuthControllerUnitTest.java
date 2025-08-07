@@ -122,8 +122,8 @@ class AuthControllerUnitTest {
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().containsKey("AccessToken"));
-        assertTrue(response.getBody().containsKey("RefreshToken"));
+        assertTrue(response.getBody().containsKey("accessToken"));
+        assertTrue(response.getBody().containsKey("refreshToken"));
     }
 
     @Test
@@ -137,7 +137,7 @@ class AuthControllerUnitTest {
 
         assertEquals(200, result.getStatusCode().value());
         assertNotNull(result.getBody());
-        assertEquals("NewTestAccessToken", result.getBody().get("AccessToken"));
+        assertEquals("NewTestAccessToken", result.getBody().get("accessToken"));
     }
 
     @Test
