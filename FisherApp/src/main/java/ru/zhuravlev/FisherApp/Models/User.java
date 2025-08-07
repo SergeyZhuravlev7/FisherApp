@@ -8,7 +8,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -45,21 +47,20 @@ public class User {
     @ManyToMany(mappedBy = "users", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Achievement> achievements;
 
-    @Transient
-    private long created_at;
+    private LocalDateTime created_at;
 
     private String role;
 
     public User() {
+        this.created_at = LocalDateTime.now();
     }
 
-    public User(String login, String password, String name, int age, Gender gender) {
+    public User(String login,String password,String name,int age,Gender gender) {
         this.login = login;
         this.password = password;
         this.name = name;
         this.age = age;
         this.gender = gender;
-        this.created_at = System.currentTimeMillis();
     }
 
     @Override
@@ -134,12 +135,8 @@ public class User {
         this.achievements = achievements;
     }
 
-    public long getCreated_at() {
+    public LocalDateTime getCreated_at() {
         return created_at;
-    }
-
-    public void setCreated_at(long created_at) {
-        this.created_at = created_at;
     }
 
     public String getRole() {

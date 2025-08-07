@@ -33,6 +33,7 @@ class JWTServiceIntegrityTest {
     @BeforeEach
     void setUp() {
         testUser = new User("TestLogin", passwordEncoder.encode("password"), "Иван", 50, Gender.MALE);
+        testUser.setRole("USER");
         testUserDetails = new CustomUserDetails(testUser.getLogin(), testUser.getPassword(), List.of(new SimpleGrantedAuthority(testUser.getRole())));
     }
 

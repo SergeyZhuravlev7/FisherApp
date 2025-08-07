@@ -18,6 +18,7 @@ import ru.zhuravlev.FisherApp.Models.Post;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
+import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -38,6 +39,8 @@ class MainControllerTest {
     private BindingResultConverter converter;
     @Mock
     private BindingResult bindingResult;
+    @Mock
+    private PostDTOValidator validator;
 
     @InjectMocks
     private MainController mainController;

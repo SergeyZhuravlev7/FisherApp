@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "posts")
@@ -32,7 +33,10 @@ public class Post {
     @Size(min = 1, max = 300, message = "Сообщение должно быть длиной от 1 до 300 символов.")
     private String message;
 
+    private LocalDateTime created_at;
+
     public Post() {
+        this.created_at = LocalDateTime.now();
     }
 
     public Post(User user, String fish, BigDecimal fish_weight) {
