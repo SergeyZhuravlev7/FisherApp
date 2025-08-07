@@ -15,6 +15,7 @@ import ru.zhuravlev.FisherApp.Models.Post;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
+import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -26,12 +27,14 @@ public class MainController {
     private final UserService userService;
     private final ModelMapper modelMapper;
     private final BindingResultConverter converter;
+    private final PostDTOValidator postDTOValidator;
 
     @Autowired
-    public MainController(UserService userService,ModelMapper modelMapper,BindingResultConverter converter) {
+    public MainController(UserService userService,ModelMapper modelMapper,BindingResultConverter converter, PostDTOValidator postDTOValidator) {
         this.userService = userService;
         this.modelMapper = modelMapper;
         this.converter = converter;
+        this.postDTOValidator = postDTOValidator;
     }
 
     @GetMapping ("/{login}")
@@ -51,6 +54,7 @@ public class MainController {
     @PreAuthorize ("#login == authentication.getName")
     @PostMapping ("/{login}/posts")
     public ResponseEntity<HttpStatus> addPost(@PathVariable String login,@RequestBody @Valid PostDTO postDTO,BindingResult bindingResult) {
+        postDTOValidator.validate(postDTO, bindingResult);
         if (bindingResult.hasErrors()) throw new PostFieldsException(converter.convertToMessage(bindingResult));
         userService.addPost(login,modelMapper.map(postDTO,Post.class));
         return new ResponseEntity<>(HttpStatus.OK);
