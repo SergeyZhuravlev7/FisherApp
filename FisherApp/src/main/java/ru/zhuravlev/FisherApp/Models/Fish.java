@@ -54,7 +54,7 @@ public enum Fish {
 
     public static final List<String> list = Stream.of(Fish.values()).map(Fish::getDisplayName).sorted().toList();
 
-    public List<String> getFishNames() {
+    public static List<String> getFishNames() {
         return list;
     }
 }

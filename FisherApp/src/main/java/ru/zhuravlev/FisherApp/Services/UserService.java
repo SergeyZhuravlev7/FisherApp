@@ -41,7 +41,6 @@ public class UserService {
         User user = userRepository.findByLogin(login).get();
         Hibernate.initialize(user.getPosts());
         Hibernate.initialize(user.getAchievements());
-        for (Post p : user.getPosts()) Hibernate.initialize(p.getFish());
         return user;
     }
 
@@ -64,7 +63,7 @@ public class UserService {
         Post post = optionalPost.get();
         User user = findByLogin(login).get();
         user.deletePost(post);
-        postService.delete(post);
+        post.setUser(null);
     }
 
     @Transactional

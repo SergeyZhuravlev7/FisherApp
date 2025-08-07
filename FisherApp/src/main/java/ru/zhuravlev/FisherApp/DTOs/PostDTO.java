@@ -10,10 +10,9 @@ public class PostDTO {
 
     private int id;
 
-    @Pattern(regexp = "[А-Яа-я]{0,15}", message = "Название рыбы должно состоять из русских букв и быть длиной менее 15 символов.")
+    @NotNull
     private String fish;
 
-    @Min(value = 0, message = "Вес рыбы должен быть больше 0.")
     private BigDecimal fish_weight;
 
     @NotNull(message = "Сообщение не должно быть пустым.")

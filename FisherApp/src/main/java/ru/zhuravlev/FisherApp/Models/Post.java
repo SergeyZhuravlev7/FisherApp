@@ -25,7 +25,6 @@ public class Post {
     @Pattern(regexp = "[А-Яа-я]{0,15}", message = "Название рыбы должно состоять из русских букв и быть длиной менее 15 символов.")
     private String fish;
 
-    @Min(value = 0, message = "Вес рыбы должен быть больше 0.")
     @Column(precision = 4, scale = 2)
     private BigDecimal fish_weight;
 
