@@ -20,6 +20,7 @@ import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.BindingResultConverter;
+import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -41,6 +42,9 @@ class MainControllerIntegrationTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private PostDTOValidator postDTOValidator;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
