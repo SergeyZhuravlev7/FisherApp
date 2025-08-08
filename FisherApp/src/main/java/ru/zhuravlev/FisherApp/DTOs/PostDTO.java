@@ -1,7 +1,7 @@
 package ru.zhuravlev.FisherApp.DTOs;
 
-import jakarta.validation.constraints.*;
-import ru.zhuravlev.FisherApp.Models.Fish;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
@@ -10,21 +10,20 @@ public class PostDTO {
 
     private int id;
 
-    @NotNull
     private String fish;
 
-    private BigDecimal fish_weight;
+    private BigDecimal fishWeight;
 
-    @NotNull(message = "Сообщение не должно быть пустым.")
-    @Size(min = 1, max = 300, message = "Сообщение должно быть длиной от 1 до 300 символов.")
+    @NotNull (message = "Сообщение не должно быть пустым.")
+    @Size (min = 1, max = 300, message = "Сообщение должно быть длиной от 1 до 300 символов.")
     private String message;
 
     public PostDTO() {
     }
 
-    public PostDTO(String fish, BigDecimal fish_weight, String message) {
+    public PostDTO(String fish,BigDecimal fishWeight,String message) {
         this.fish = fish;
-        this.fish_weight = fish_weight;
+        this.fishWeight = fishWeight;
         this.message = message;
     }
 
@@ -44,12 +43,12 @@ public class PostDTO {
         this.fish = fish;
     }
 
-    public BigDecimal getFish_weight() {
-        return fish_weight;
+    public BigDecimal getFishWeight() {
+        return fishWeight;
     }
 
-    public void setFish_weight(BigDecimal fish_weight) {
-        this.fish_weight = fish_weight;
+    public void setFishWeight(BigDecimal fishWeight) {
+        this.fishWeight = fishWeight;
     }
 
     public String getMessage() {
@@ -64,7 +63,7 @@ public class PostDTO {
     public String toString() {
         return "PostDTO{" +
                 "fish=" + fish +
-                ", fish_weight=" + fish_weight +
+                ", fish_weight=" + fishWeight +
                 ", message='" + message + '\'' +
                 '}';
     }

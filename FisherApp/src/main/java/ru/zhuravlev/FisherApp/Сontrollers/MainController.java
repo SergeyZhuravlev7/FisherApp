@@ -30,7 +30,7 @@ public class MainController {
     private final PostDTOValidator postDTOValidator;
 
     @Autowired
-    public MainController(UserService userService,ModelMapper modelMapper,BindingResultConverter converter, PostDTOValidator postDTOValidator) {
+    public MainController(UserService userService,ModelMapper modelMapper,BindingResultConverter converter,PostDTOValidator postDTOValidator) {
         this.userService = userService;
         this.modelMapper = modelMapper;
         this.converter = converter;
@@ -54,7 +54,7 @@ public class MainController {
     @PreAuthorize ("#login == authentication.getName")
     @PostMapping ("/{login}/posts")
     public ResponseEntity<HttpStatus> addPost(@PathVariable String login,@RequestBody @Valid PostDTO postDTO,BindingResult bindingResult) {
-        postDTOValidator.validate(postDTO, bindingResult);
+        postDTOValidator.validate(postDTO,bindingResult);
         if (bindingResult.hasErrors()) throw new PostFieldsException(converter.convertToMessage(bindingResult));
         userService.addPost(login,modelMapper.map(postDTO,Post.class));
         return new ResponseEntity<>(HttpStatus.OK);

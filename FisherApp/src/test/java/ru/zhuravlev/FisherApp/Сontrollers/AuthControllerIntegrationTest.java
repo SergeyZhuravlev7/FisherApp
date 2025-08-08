@@ -1,6 +1,5 @@
 package ru.zhuravlev.FisherApp.Сontrollers;
 
-import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,9 +22,12 @@ import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.JWTService;
 import ru.zhuravlev.FisherApp.Services.UserService;
+import ru.zhuravlev.FisherApp.Validators.UserDTOInValidator;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -50,6 +52,9 @@ class AuthControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private UserDTOInValidator userDTOInValidator;
+
     @MockitoSpyBean
     private JWTService jwtService;
 
@@ -60,9 +65,10 @@ class AuthControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        validUserDTO = new UserDTOIn("TestLogin", "Иван", "password", 50, Gender.MALE);
+        validUserDTO = new UserDTOIn("TestLogin","Иван","password","08.02.1995",Gender.MALE,"testmail@gmail.com");
         invalidUserDTO = new UserDTOIn();
-        testUser = new User("TestLogin", passwordEncoder.encode("password"), "Иван", 50, Gender.MALE);
+        LocalDate date = LocalDate.parse("08.02.1995",DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        testUser = new User("TestLogin",passwordEncoder.encode("password"),"Иван",Gender.MALE,date,"testmail@gmail.com");
         testUser.setRole("USER");
         testLoginDTO = new LoginDTO();
         testLoginDTO.setLogin("TestLogin");
@@ -74,12 +80,13 @@ class AuthControllerIntegrationTest {
     void registrationWithExistingUsername() throws Exception {
         when(userService.findByLogin("TestLogin")).thenReturn(Optional.of(testUser));
         mockMvc.perform(post("/api/auth/registration")
-                .content(objectMapper.writeValueAsString(validUserDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(validUserDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("message").hasJsonPath())
                 .andExpect(jsonPath("timestamp").hasJsonPath())
                 .andExpect(status().isBadRequest());
     }
+
     @Test
     @WithAnonymousUser
     void registrationWithValidUser() throws Exception {
@@ -100,22 +107,22 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("login").hasJsonPath())
                 .andExpect(jsonPath("name").hasJsonPath())
-                .andExpect(jsonPath("age").hasJsonPath())
+                .andExpect(jsonPath("birthDate").hasJsonPath())
                 .andExpect(jsonPath("gender").hasJsonPath())
                 .andExpect(jsonPath("password").hasJsonPath());
     }
 
     @Test
-    @WithMockUser(username = "someName123")
+    @WithMockUser (username = "someName123")
     void registrationWithAuthUser() throws Exception {
         mockMvc.perform(post("/api/auth/registration")
-                    .content(objectMapper.writeValueAsString(validUserDTO))
-                    .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(validUserDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
-    @WithMockUser(username = "someName123")
+    @WithMockUser (username = "someName123")
     void loginWithAuthUser() throws Exception {
         mockMvc.perform(post("/api/auth/registration")
                         .content(objectMapper.writeValueAsString(testLoginDTO))
@@ -125,19 +132,19 @@ class AuthControllerIntegrationTest {
 
     @Test
     @WithAnonymousUser
-    void loginWithExistingUser () throws Exception {
+    void loginWithExistingUser() throws Exception {
         when(userService.findByLogin(testLoginDTO.getLogin())).thenReturn(Optional.of(testUser));
         mockMvc.perform(post("/api/auth/login")
-                    .content(objectMapper.writeValueAsString(testLoginDTO))
-                    .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(testLoginDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("accessToken").hasJsonPath())
-                .andExpect(jsonPath("refreshToken").hasJsonPath());;
+                .andExpect(jsonPath("refreshToken").hasJsonPath());
     }
 
     @Test
     @WithAnonymousUser
-    void loginWithoutExistingUser () throws Exception {
+    void loginWithoutExistingUser() throws Exception {
         when(userService.findByLogin(testLoginDTO.getLogin())).thenReturn(Optional.empty());
         mockMvc.perform(post("/api/auth/login")
                         .content(objectMapper.writeValueAsString(testLoginDTO))
@@ -154,8 +161,8 @@ class AuthControllerIntegrationTest {
         validToken.setRefreshToken(stringToken);
 
         mockMvc.perform(post("/api/auth/token")
-                    .content(objectMapper.writeValueAsString(validToken))
-                    .contentType(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(validToken))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("accessToken").hasJsonPath());
     }

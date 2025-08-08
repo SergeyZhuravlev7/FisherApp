@@ -24,6 +24,7 @@ import ru.zhuravlev.FisherApp.Util.BindingResultConverter;
 import ru.zhuravlev.FisherApp.Util.UserAlreadyExistException;
 import ru.zhuravlev.FisherApp.Util.UserErrorResponse;
 import ru.zhuravlev.FisherApp.Util.UserFieldsException;
+import ru.zhuravlev.FisherApp.Validators.UserDTOInValidator;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,20 +38,24 @@ public class AuthController {
     private final ModelMapper modelMapper;
     private final AuthManager authenticationManager;
     private final JWTService jwtService;
+    private final UserDTOInValidator userDTOInValidator;
 
     @Autowired
     public AuthController(UserService userService,BindingResultConverter converter,ModelMapper modelMapper,
-                          PasswordEncoder passwordEncoder,AuthManager authenticationManager,JWTService jwtService) {
+                          PasswordEncoder passwordEncoder,AuthManager authenticationManager,JWTService jwtService,
+                          UserDTOInValidator userDTOInValidator) {
         this.userService = userService;
         this.converter = converter;
         this.modelMapper = modelMapper;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.userDTOInValidator = userDTOInValidator;
     }
 
     @PostMapping ("/registration")
     public ResponseEntity<HttpStatus> registration(@RequestBody @Valid UserDTOIn userDTOIn,BindingResult bindingResult) {
         if (userService.findByLogin(userDTOIn.getLogin()).isPresent()) throw new UserAlreadyExistException();
+        userDTOInValidator.validate(userDTOIn,bindingResult);
         if (bindingResult.hasErrors()) throw new UserFieldsException(converter.convertToMessage(bindingResult));
         User user = modelMapper.map(userDTOIn,User.class);
         userService.save(user);

@@ -21,6 +21,8 @@ import ru.zhuravlev.FisherApp.Util.*;
 import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -28,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith (MockitoExtension.class)
 class MainControllerTest {
 
     @Mock
@@ -45,70 +47,72 @@ class MainControllerTest {
     @InjectMocks
     private MainController mainController;
 
-    User user;
+    User testUser;
     UserDTOOut userDTOOut;
     PostDTO postDTO;
 
     @BeforeEach
     void setUp() {
-        user = new User("login", "password", "name", 30, Gender.MALE);
-        userDTOOut = new UserDTOOut("login", "name", 30, Gender.MALE);
-        postDTO = new PostDTO("Щука", new BigDecimal(10), "Test message");
+        LocalDate date = LocalDate.parse("08.02.1995",DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        testUser = new User("TestLogin","password","Иван",Gender.MALE,date,"testmail@gmail.com");
+        userDTOOut = new UserDTOOut("login","name",30,Gender.MALE);
+        postDTO = new PostDTO("Щука",new BigDecimal(10),"Test message");
     }
 
 
     @Test
     void getExistingUserProfile() {
-        when(userService.findByLogin("login")).thenReturn(Optional.of(user));
-        when(modelMapper.map(Optional.of(user).get(), UserDTOOut.class)).thenReturn(userDTOOut);
+        when(userService.findByLogin("login")).thenReturn(Optional.of(testUser));
+        when(modelMapper.map(Optional.of(testUser).get(),UserDTOOut.class)).thenReturn(userDTOOut);
 
         UserDTOOut response = mainController.getUserProfile("login");
 
-        assertEquals("login", userDTOOut.getLogin());
-        assertEquals("name", userDTOOut.getName());
-        assertEquals(30, userDTOOut.getAge());
-        assertEquals(Gender.MALE, userDTOOut.getGender());
+        assertEquals("login",userDTOOut.getLogin());
+        assertEquals("name",userDTOOut.getName());
+        assertEquals(30,userDTOOut.getAge());
+        assertEquals(Gender.MALE,userDTOOut.getGender());
     }
 
     @Test
     void getNotExistingUserProfile() {
         when(userService.findByLogin("login")).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> mainController.getUserProfile("login"));
+        assertThrows(UserNotFoundException.class,() -> mainController.getUserProfile("login"));
     }
 
     @Test
     void deleteUserProfile() {
         ResponseEntity<HttpStatus> response = mainController.deleteUserProfile("login");
 
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(200,response.getStatusCode().value());
         verify(userService,times(1)).deleteUser("login");
     }
 
     @Test
     void addValidPost() {
         when(bindingResult.hasErrors()).thenReturn(false);
-        when(modelMapper.map(postDTO, Post.class)).thenReturn(new Post());
+        when(modelMapper.map(postDTO,Post.class)).thenReturn(new Post());
 
-        ResponseEntity<HttpStatus> response = mainController.addPost("login", postDTO, bindingResult);
+        ResponseEntity<HttpStatus> response = mainController.addPost("login",postDTO,bindingResult);
 
-        verify(userService, times(1)).addPost(eq("login"), any(Post.class));
-        verify(modelMapper, times(1)).map(postDTO, Post.class);
-        assertEquals(200, response.getStatusCode().value());
+        verify(userService,times(1)).addPost(eq("login"),any(Post.class));
+        verify(modelMapper,times(1)).map(postDTO,Post.class);
+        assertEquals(200,response.getStatusCode().value());
     }
+
     @Test
     void addInvalidPost() {
         when(bindingResult.hasErrors()).thenReturn(true);
 
-        assertThrows(PostFieldsException.class, () -> mainController.addPost("login", postDTO, bindingResult));
+        assertThrows(PostFieldsException.class,() -> mainController.addPost("login",postDTO,bindingResult));
     }
 
     @Test
     void deletePost() {
-        ResponseEntity<HttpStatus> response = mainController.deletePost("login", 1);
+        ResponseEntity<HttpStatus> response = mainController.deletePost("login",1);
 
-        assertEquals(200, response.getStatusCode().value());
-        verify(userService, times(1)).deletePost("login", 1);
+        assertEquals(200,response.getStatusCode().value());
+        verify(userService,times(1)).deletePost("login",1);
     }
 
     @Test
@@ -117,21 +121,21 @@ class MainControllerTest {
 
         ResponseEntity<UserErrorResponse> response = mainController.exceptionHandler(exception);
 
-        assertEquals(400, response.getStatusCode().value());
-        assertEquals(response.getBody().getMessage(), exception.getMessage());
+        assertEquals(400,response.getStatusCode().value());
+        assertEquals(response.getBody().getMessage(),exception.getMessage());
         assertTrue(response.getBody().getTimestamp() > 0);
     }
 
     @Test
     void PostFieldsExceptionHandler() {
-        HashMap<String,String> map = new HashMap<>();
-        map.put("message", "message Message");
+        HashMap<String, String> map = new HashMap<>();
+        map.put("message","message Message");
         PostFieldsException exception = new PostFieldsException(map);
 
-        ResponseEntity<HashMap<String,String>> response = mainController.exceptionHandler(exception);
+        ResponseEntity<HashMap<String, String>> response = mainController.exceptionHandler(exception);
 
-        assertEquals(400, response.getStatusCode().value());
-        assertEquals(response.getBody().get("message"), "message Message");
+        assertEquals(400,response.getStatusCode().value());
+        assertEquals(response.getBody().get("message"),"message Message");
     }
 
     @Test
@@ -140,8 +144,8 @@ class MainControllerTest {
 
         ResponseEntity<PostErrorResponse> response = mainController.exceptionHandler(exception);
 
-        assertEquals(400, response.getStatusCode().value());
-        assertEquals(response.getBody().getMessage(), exception.getMessage());
+        assertEquals(400,response.getStatusCode().value());
+        assertEquals(response.getBody().getMessage(),exception.getMessage());
         assertTrue(response.getBody().getTimestamp() > 0);
     }
 }

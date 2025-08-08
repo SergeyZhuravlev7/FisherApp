@@ -8,37 +8,40 @@ import ru.zhuravlev.FisherApp.Models.Gender;
 public class UserDTOIn {
 
     @NotNull
-    @Size(min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символом")
-    @NotBlank(message = "Логин не может состоять из пробелов.")
+    @Size (min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символом")
+    @NotBlank (message = "Логин не может состоять из пробелов.")
     private String login;
 
     @NotNull
-    @Pattern(regexp = "[А-Яа-я]{3,15}", message = "Имя должно состоять из символов русского алфавита и быть длиной от 3 до 15 символов.")
-    @NotBlank(message = "Имя не может состоять из пробелов.")
+    @Pattern (regexp = "[А-Яа-я]{3,15}", message = "Имя должно состоять из символов русского алфавита и быть длиной от 3 до 15 символов.")
+    @NotBlank (message = "Имя не может состоять из пробелов.")
     private String name;
 
     @NotNull
-    @NotBlank(message = "Пароль не может состоять из пробелов.")
-    @Pattern(regexp = "[A-Za-z!?#$%*()]{8,}", message = "Пароль может состоять из символов латинского алфавита и спецсимволов !?#$%*(). и быть длиной не менее 8 символов")
+    @NotBlank (message = "Пароль не может состоять из пробелов.")
+    @Pattern (regexp = "[A-Za-z!?#$%*()]{8,}", message = "Пароль может состоять из символов латинского алфавита и спецсимволов !?#$%*(). и быть длиной не менее 8 символов")
     private String password;
 
-    @Min(value = 12, message = "Пользователь должен быть старше 12 лет.")
-    @Max(value = 100, message = "Пользователь должен быть моложе 100 лет")
-    private int age;
+    private String birthDate;
 
     @NotNull
-    @Enumerated(EnumType.STRING)
+    @Enumerated (EnumType.STRING)
     private Gender gender;
+
+    @NotNull (message = "Email не может быть пустым.")
+    @Email (message = "Email не соответствует формату.")
+    private String email;
 
     public UserDTOIn() {
     }
 
-    public UserDTOIn(String login, String name, String password, int age, Gender gender) {
+    public UserDTOIn(String login,String name,String password,String birthDate,Gender gender,String email) {
         this.login = login;
         this.name = name;
         this.password = password;
-        this.age = age;
+        this.birthDate = birthDate;
         this.gender = gender;
+        this.email = email;
     }
 
     public String getLogin() {
@@ -53,22 +56,15 @@ public class UserDTOIn {
         return password;
     }
 
-    public int getAge() {
-        return age;
-    }
-
     public Gender getGender() {
         return gender;
     }
 
-    @Override
-    public String toString() {
-        return "UserDTOIn{" +
-                "login='" + login + '\'' +
-                ", name='" + name + '\'' +
-                ", password='" + password + '\'' +
-                ", age=" + age +
-                ", gender=" + gender +
-                '}';
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public String getEmail() {
+        return email;
     }
 }

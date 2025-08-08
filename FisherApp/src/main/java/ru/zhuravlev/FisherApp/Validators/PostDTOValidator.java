@@ -16,7 +16,17 @@ public class PostDTOValidator implements Validator {
     @Override
     public void validate(Object target,Errors errors) {
         PostDTO postDTO = (PostDTO) target;
-        if (!Fish.getFishNames().contains(postDTO.getFish())) errors.rejectValue("fish", "", "Недопустимое название для рыбы.");
-        if (postDTO.getFish_weight().doubleValue() <= 0.01) errors.rejectValue("fish_weight", "", "Вес рыбы должен быть больше 0.01");
+        if (postDTO.getFish() == null && postDTO.getFishWeight() != null)
+            errors.rejectValue("fishWeight","","Не допустимо указание веса без рыбы.");
+        if (postDTO.getFish() != null && postDTO.getFishWeight() == null)
+            errors.rejectValue("fishWeight","","Не допустимо указание рыбы без веса.");
+        if (postDTO.getFish() != null) {
+            if (! Fish.getFishNames().contains(postDTO.getFish()))
+                errors.rejectValue("fish","","Недопустимое название для рыбы.");
+        }
+        if (postDTO.getFishWeight() != null) {
+            if (postDTO.getFishWeight().doubleValue() <= 0.01)
+                errors.rejectValue("fishWeight","","Вес рыбы должен быть больше 0.01");
+        }
     }
 }

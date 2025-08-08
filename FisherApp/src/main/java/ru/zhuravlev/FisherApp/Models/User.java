@@ -5,46 +5,55 @@ Sergey Zhuravlev
 */
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table (name = "users")
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue (strategy = GenerationType.IDENTITY)
     private int id;
 
     @NotNull
-    @Size(min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символов.")
+    @Size (min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символов.")
     @NotBlank
     private String login;
 
-    @Column(name = "password_hash")
+    @Column (name = "password_hash")
     private String password;
 
     @NotNull
-    @Size(min = 3, max = 30, message = "Длина имени должна быть от 3 до 30 символов.")
+    @Size (min = 3, max = 30, message = "Длина имени должна быть от 3 до 30 символов.")
     private String name;
 
-    @Min(value = 12, message = "Возраст должен быть больше 12 лет.")
-    @Max(value = 100, message = "Возраст должен быть меньше 100 лет.")
+    @Transient
     private int age;
 
     @NotNull
-    @Enumerated(EnumType.STRING)
+    @Enumerated (EnumType.STRING)
     private Gender gender;
 
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @Column (name = "birthdate")
+    private LocalDate birthDate;
+
+    @Email (message = "Email не соответствует формату.")
+    private String email;
+
+    @OneToMany (mappedBy = "user", cascade = {CascadeType.PERSIST,CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Post> posts;
 
-    @ManyToMany(mappedBy = "users", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @ManyToMany (mappedBy = "users", cascade = {CascadeType.PERSIST,CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<Achievement> achievements;
 
     private LocalDateTime created_at;
@@ -53,14 +62,17 @@ public class User {
 
     public User() {
         this.created_at = LocalDateTime.now();
+        this.role = "USER";
     }
 
-    public User(String login,String password,String name,int age,Gender gender) {
+    public User(String login,String password,String name,Gender gender,LocalDate birthDate,String email) {
         this.login = login;
         this.password = password;
         this.name = name;
-        this.age = age;
         this.gender = gender;
+        this.birthDate = birthDate;
+        this.email = email;
+        this.age = this.birthDate.until(LocalDate.now()).getYears();
     }
 
     @Override
@@ -72,6 +84,8 @@ public class User {
                 ", name='" + name + '\'' +
                 ", age=" + age +
                 ", gender=" + gender +
+                ", birthDate=" + birthDate +
+                ", email='" + email + '\'' +
                 ", posts=" + posts +
                 ", achievements=" + achievements +
                 ", created_at=" + created_at +
@@ -104,11 +118,7 @@ public class User {
     }
 
     public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
+        return this.birthDate.until(LocalDate.now()).getYears();
     }
 
     public Gender getGender() {
@@ -163,5 +173,22 @@ public class User {
 
     public void deletePost(Post post) {
         if (this.posts != null) this.posts.remove(post);
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = LocalDate.parse(birthDate,DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        this.age = this.birthDate.until(LocalDate.now()).getYears();
     }
 }
