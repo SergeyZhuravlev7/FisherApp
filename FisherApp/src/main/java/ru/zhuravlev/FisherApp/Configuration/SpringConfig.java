@@ -17,12 +17,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import ru.zhuravlev.FisherApp.Configuration.Security.CustomAuthenticationEntryPoint;
 import ru.zhuravlev.FisherApp.Configuration.Security.JWTAuthenticationFilter;
 
 @Configuration
-@EnableWebMvc
 @EnableCaching
 @EnableMethodSecurity
 public class SpringConfig {
