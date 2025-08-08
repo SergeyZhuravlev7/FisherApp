@@ -1,15 +1,15 @@
-INSERT INTO users (login, password_hash, name, age, gender, created_at, role)
+INSERT INTO users (login, password_hash, name, birthdate, gender, created_at, role)
 VALUES ('MissJane',
 '$2a$12$OcKrhLfcQvEXQqZX0EiZQu6nemwlAYiwoS9vQPpesf91ZwxBo23EK',
 'Евгения Морозова',
-30,
+'1991-02-12',
 'FEMALE',
 now(),
 "USER"),
 ('StepanRazin',
 '$2a$12$OcKrhLfcQvEXQqZX0EiZQu6nemwlAYiwoS9vQPpesf91ZwxBo23EK',
 'Степан Иванов',
-28,
+'1993-05-18',
 'MALE',
 now(),
 "USER");

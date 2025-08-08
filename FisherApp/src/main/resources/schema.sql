@@ -9,9 +9,10 @@ CREATE TABLE IF NOT EXISTS users(id INT AUTO_INCREMENT,
 login VARCHAR(30) CHECK(LENGTH(login) > 7 & LENGTH(login) < 31) UNIQUE NOT NULL,
 password_hash VARCHAR(255),
 name VARCHAR(30) check(LENGTH(name) > 2 & LENGTH(name) < 31),
-age SMALLINT check (age > 12 & age < 100),
+birthdate DATE,
 gender ENUM('MALE', 'FEMALE'),
 created_at DATETIME,
+email VARCHAR(40),
 role VARCHAR(30),
 PRIMARY KEY (id));
 

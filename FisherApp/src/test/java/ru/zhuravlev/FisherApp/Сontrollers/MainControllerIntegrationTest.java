@@ -13,16 +13,16 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.validation.BindingResult;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
-import ru.zhuravlev.FisherApp.Util.BindingResultConverter;
 import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
@@ -55,22 +55,23 @@ class MainControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        testUser = new User("loginnnn", "password", "TestName", 30, Gender.MALE);
-        testUserDTO = new UserDTOOut("loginnnn", "TestName", 30, Gender.MALE);
-        validPostDTO = new PostDTO("Щука", BigDecimal.valueOf(18), "Тестовое сообщение");
+        LocalDate date = LocalDate.parse("08.02.1995",DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        testUser = new User("loginnnn","password","Иван",Gender.MALE,date,"testmail@gmail.com");
+        testUserDTO = new UserDTOOut("loginnnn","Иван",30,Gender.MALE);
+        validPostDTO = new PostDTO("Щука",BigDecimal.valueOf(18),"Тестовое сообщение");
         invalidPostDTO = new PostDTO();
     }
 
     @Test
     void getUserProfileWithExistingUser() throws Exception {
         when(userService.findByLogin(testUser.getLogin())).thenReturn(Optional.of(testUser));
-        when(modelMapper.map(testUser, UserDTOOut.class)).thenReturn(testUserDTO);
+        when(modelMapper.map(testUser,UserDTOOut.class)).thenReturn(testUserDTO);
         mockMvc.perform(get("/api/users/loginnnn")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(200))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("login").value("loginnnn"))
-                .andExpect(jsonPath("name").value("TestName"))
+                .andExpect(jsonPath("name").value("Иван"))
                 .andExpect(jsonPath("age").value("30"));
     }
 
@@ -85,7 +86,7 @@ class MainControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "loginnnn")
+    @WithMockUser (username = "loginnnn")
     void deleteUserProfileWithAuth() throws Exception {
         mockMvc.perform(delete("/api/users/loginnnn")
                         .content(objectMapper.writeValueAsString(validPostDTO))
@@ -100,7 +101,7 @@ class MainControllerIntegrationTest {
                 .andExpect(status().is(401));
     }
 
-    @WithMockUser(username = "loginnnn1")
+    @WithMockUser (username = "loginnnn1")
     @Test
     void deleteUserProfileWithAnotherAuth() throws Exception {
         mockMvc.perform(delete("/api/users/loginnnn"))
@@ -117,7 +118,7 @@ class MainControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "loginnnn1")
+    @WithMockUser (username = "loginnnn1")
     void addValidPostWithAnotherAuth() throws Exception {
         mockMvc.perform(post("/api/users/loginnnn/posts").
                         content(objectMapper.writeValueAsString(validPostDTO))
@@ -126,7 +127,7 @@ class MainControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "loginnnn1")
+    @WithMockUser (username = "loginnnn1")
     void addInvalidPostWithAnotherAuth() throws Exception {
         mockMvc.perform(post("/api/users/loginnnn/posts")
                         .content(objectMapper.writeValueAsString(invalidPostDTO))
@@ -144,7 +145,7 @@ class MainControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "loginnnn")
+    @WithMockUser (username = "loginnnn")
     void addValidPostWithAuth() throws Exception {
         mockMvc.perform(post("/api/users/loginnnn/posts")
                         .content(objectMapper.writeValueAsString(validPostDTO))
@@ -153,7 +154,7 @@ class MainControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "loginnnn")
+    @WithMockUser (username = "loginnnn")
     void addInvalidPostWithAuth() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/users/loginnnn/posts")
                         .content(objectMapper.writeValueAsString(invalidPostDTO))
@@ -164,7 +165,7 @@ class MainControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "loginnnn")
+    @WithMockUser (username = "loginnnn")
     void deletePostWithAuth() throws Exception {
         mockMvc.perform(delete("/api/users/loginnnn/posts/1"))
                 .andExpect(status().isOk());
@@ -178,9 +179,10 @@ class MainControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "loginnnn")
+    @WithMockUser (username = "loginnnn")
     void deletePostWithAnotherAuth() throws Exception {
         mockMvc.perform(delete("/api/users/loginnnn1234/posts/1"))
                 .andExpect(status().is(403));
     }
+
 }

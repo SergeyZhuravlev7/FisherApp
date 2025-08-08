@@ -16,6 +16,8 @@ public class UserDTOOut {
 
     private Gender gender;
 
+    private String email;
+
     private List<PostDTO> posts;
 
     private List<AchievementDTO> achievements;
@@ -23,7 +25,7 @@ public class UserDTOOut {
     public UserDTOOut() {
     }
 
-    public UserDTOOut(String login, String name, int age, Gender gender) {
+    public UserDTOOut(String login,String name,int age,Gender gender) {
         this.login = login;
         this.name = name;
         this.age = age;
@@ -78,13 +80,22 @@ public class UserDTOOut {
         this.achievements = achievements;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     @Override
     public String toString() {
-        return "UserDTO{" +
+        return "UserDTOOut{" +
                 "login='" + login + '\'' +
                 ", name='" + name + '\'' +
                 ", age=" + age +
                 ", gender=" + gender +
+                ", email='" + email + '\'' +
                 ", posts=" + posts +
                 ", achievements=" + achievements +
                 '}';

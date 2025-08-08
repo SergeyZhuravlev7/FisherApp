@@ -6,31 +6,31 @@ Sergey Zhuravlev
 */
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "posts")
+@Table (name = "posts")
 public class Post {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue (strategy = GenerationType.IDENTITY)
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn (name = "user_id")
     private User user;
 
-    @Pattern(regexp = "[А-Яа-я]{0,15}", message = "Название рыбы должно состоять из русских букв и быть длиной менее 15 символов.")
     private String fish;
 
-    @Column(precision = 4, scale = 2)
-    private BigDecimal fish_weight;
+    @Column (precision = 4, scale = 2)
+    private BigDecimal fishWeight;
 
-    @NotNull(message = "Сообщение не должно быть пустым.")
-    @Size(min = 1, max = 300, message = "Сообщение должно быть длиной от 1 до 300 символов.")
+    @NotNull (message = "Сообщение не должно быть пустым.")
+    @Size (min = 1, max = 300, message = "Сообщение должно быть длиной от 1 до 300 символов.")
     private String message;
 
     private LocalDateTime created_at;
@@ -39,10 +39,10 @@ public class Post {
         this.created_at = LocalDateTime.now();
     }
 
-    public Post(User user, String fish, BigDecimal fish_weight) {
+    public Post(User user,String fish,BigDecimal fishWeight) {
         this.user = user;
         this.fish = fish;
-        this.fish_weight = fish_weight;
+        this.fishWeight = fishWeight;
     }
 
     public int getId() {
@@ -69,12 +69,12 @@ public class Post {
         this.fish = fish;
     }
 
-    public BigDecimal getFish_weight() {
-        return fish_weight;
+    public BigDecimal getFishWeight() {
+        return fishWeight;
     }
 
-    public void setFish_weight(BigDecimal fish_weight) {
-        this.fish_weight = fish_weight;
+    public void setFishWeight(BigDecimal fishWeight) {
+        this.fishWeight = fishWeight;
     }
 
     public String getMessage() {
@@ -91,7 +91,7 @@ public class Post {
                 "id=" + id +
                 ", user=" + user.getId() +
                 ", fish=" + fish +
-                ", fish_weight=" + fish_weight +
+                ", fish_weight=" + fishWeight +
                 ", message='" + message + '\'' +
                 '}';
     }

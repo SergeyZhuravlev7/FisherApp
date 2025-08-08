@@ -12,6 +12,8 @@ import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -32,9 +34,10 @@ class JWTServiceIntegrityTest {
 
     @BeforeEach
     void setUp() {
-        testUser = new User("TestLogin", passwordEncoder.encode("password"), "Иван", 50, Gender.MALE);
+        LocalDate date = LocalDate.parse("08.02.1995",DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        testUser = new User("TestLogin",passwordEncoder.encode("password"),"Иван",Gender.MALE,date,"testmail@gmail.com");
         testUser.setRole("USER");
-        testUserDetails = new CustomUserDetails(testUser.getLogin(), testUser.getPassword(), List.of(new SimpleGrantedAuthority(testUser.getRole())));
+        testUserDetails = new CustomUserDetails(testUser.getLogin(),testUser.getPassword(),List.of(new SimpleGrantedAuthority(testUser.getRole())));
     }
 
     @Test
@@ -68,14 +71,14 @@ class JWTServiceIntegrityTest {
         String accessToken = jwtService.createAccessToken(testUserDetails);
         String subject = jwtService.getUsername(accessToken);
 
-        assertEquals("TestLogin", subject);
+        assertEquals("TestLogin",subject);
     }
 
     @Test
     void isValidAccessToken() {
         String accessToken = jwtService.createAccessToken(testUserDetails);
 
-        assertTrue(jwtService.isValidAccessToken(accessToken, testUserDetails));
+        assertTrue(jwtService.isValidAccessToken(accessToken,testUserDetails));
     }
 
     @Test
@@ -87,11 +90,11 @@ class JWTServiceIntegrityTest {
                 .withIssuer("FisherApp")
                 .withIssuedAt(new Date())
                 .withSubject("InvalidUserName")
-                .withClaim("ROLES", "ROLE_USER")
+                .withClaim("ROLES","ROLE_USER")
                 .withExpiresAt(new Date())
                 .sign(Algorithm.HMAC256("testkey"));
 
-        assertFalse(jwtService.isValidAccessToken(accessToken, testUserDetails));
+        assertFalse(jwtService.isValidAccessToken(accessToken,testUserDetails));
         assertTrue(JWT.decode(accessToken).getExpiresAt().before(new Date()));
     }
 
@@ -99,7 +102,7 @@ class JWTServiceIntegrityTest {
     void isValidRefreshToken() {
         String refreshToken = jwtService.createRefreshToken(testUserDetails);
 
-        assertTrue(jwtService.isValidAccessToken(refreshToken, testUserDetails));
+        assertTrue(jwtService.isValidAccessToken(refreshToken,testUserDetails));
     }
 
     @Test
@@ -111,10 +114,10 @@ class JWTServiceIntegrityTest {
                 .withIssuer("FisherApp")
                 .withIssuedAt(new Date())
                 .withSubject("InvalidUserName")
-                .withClaim("ROLES", "ROLE_USER")
+                .withClaim("ROLES","ROLE_USER")
                 .withExpiresAt(new Date())
                 .sign(Algorithm.HMAC256("testkey"));
-        assertFalse(jwtService.isValidAccessToken(refreshToken, testUserDetails));
+        assertFalse(jwtService.isValidAccessToken(refreshToken,testUserDetails));
         assertTrue(JWT.decode(refreshToken).getExpiresAt().before(new Date()));
     }
 }
