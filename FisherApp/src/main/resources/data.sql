@@ -12,7 +12,14 @@ now(),
 '1993-05-18',
 'MALE',
 now(),
-"USER");
+"USER"),
+('Admin123',
+'$2a$12$jD469nUpvmDVWfLUt6lvUebJTv9FsVjoknKJkXlUMofAepCD1ZLfa',
+'Сергей Журавлев',
+'1995-02-08',
+'MALE',
+now(),
+'ADMIN');
 
 INSERT INTO achievements (name, description) VALUES ('Тяжеловес', 'Поймана рыба весом более 15 килограмм'),
 ('Я памятник себе воздвиг нерукотворный...', 'Написано больше 100 постов');

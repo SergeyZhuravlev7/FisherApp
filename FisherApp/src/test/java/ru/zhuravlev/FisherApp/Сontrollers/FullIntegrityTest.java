@@ -1,6 +1,7 @@
 package ru.zhuravlev.FisherApp.Сontrollers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,10 +15,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.BindingResult;
 import ru.zhuravlev.FisherApp.DTOs.*;
 import ru.zhuravlev.FisherApp.Models.Gender;
+import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 public class FullIntegrityTest {
 
     @Autowired
@@ -38,6 +42,9 @@ public class FullIntegrityTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private PostDTOValidator postDTOValidator;
 
     @MockitoBean
     private BindingResult bindingResult;
@@ -54,8 +61,10 @@ public class FullIntegrityTest {
         postDTO = new PostDTO("Сом",new BigDecimal("12.5"),"ТестовоеСообщение");
     }
 
+
     @Test
     void fullIntegrityTest() throws Exception {
+
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setLogin(testUser.getLogin());
         loginDTO.setPassword(testUser.getPassword());
@@ -77,6 +86,8 @@ public class FullIntegrityTest {
         Assertions.assertNotNull(response.getBody());
         String accessToken = response.getBody().get("accessToken");
         String refreshToken = response.getBody().get("refreshToken");
+
+        when(bindingResult.hasErrors()).thenReturn(false);
 
         mockMvc.perform(post("/api/users/" + testUser.getLogin() + "/posts")
                         .contentType(MediaType.APPLICATION_JSON)

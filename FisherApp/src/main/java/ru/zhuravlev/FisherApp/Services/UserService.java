@@ -27,7 +27,7 @@ public class UserService {
     private EntityManager entityManager;
 
     @Autowired
-    public UserService(UserRepository userRepository, PostService postService) {
+    public UserService(UserRepository userRepository,PostService postService) {
         this.userRepository = userRepository;
         this.postService = postService;
     }
@@ -50,14 +50,14 @@ public class UserService {
     }
 
     @Transactional
-    public void addPost(String login, Post post) {
+    public void addPost(String login,Post post) {
         User user = findByLogin(login).get();
         Hibernate.initialize(user.getPosts());
         user.addPost(post);
     }
 
     @Transactional
-    public void deletePost(String login, int postId) {
+    public void deletePost(String login,int postId) {
         Optional<Post> optionalPost = postService.findById(postId);
         if (optionalPost.isEmpty()) return;
         Post post = optionalPost.get();
@@ -68,7 +68,7 @@ public class UserService {
 
     @Transactional
     public void deleteUser(String login) {
-        User user = userRepository.findByLogin(login).get();
+        User user = findByLogin(login).get();
         Hibernate.initialize(user.getPosts());
         for (Post p : user.getPosts()) p.setUser(null);
         userRepository.delete(user);
