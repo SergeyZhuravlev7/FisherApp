@@ -29,5 +29,11 @@ public class PostService {
         return postRepository.findById(id);
     }
 
+    public void delete(int id) {
+        Optional<Post> optionalPost = findById(id);
+        if (optionalPost.isEmpty()) return;
+        postRepository.delete(optionalPost.get());
+    }
+
 
 }
