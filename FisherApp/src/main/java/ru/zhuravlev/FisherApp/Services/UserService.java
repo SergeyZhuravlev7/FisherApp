@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.zhuravlev.FisherApp.DTOs.UserDTOFilling;
+import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.Post;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Repos.UserRepository;
@@ -72,5 +74,14 @@ public class UserService {
         Hibernate.initialize(user.getPosts());
         for (Post p : user.getPosts()) p.setUser(null);
         userRepository.delete(user);
+    }
+
+    @Transactional
+    public void fillUser(String login,UserDTOFilling userDTOFilling) {
+        User user = findByLogin(login).get();
+        user.setName(userDTOFilling.getName());
+        user.setBirthDate(userDTOFilling.getBirthDate());
+        String gender = userDTOFilling.getGender().toLowerCase();
+        user.setGender(gender.equals("мужской") ? Gender.MALE : Gender.FEMALE);
     }
 }

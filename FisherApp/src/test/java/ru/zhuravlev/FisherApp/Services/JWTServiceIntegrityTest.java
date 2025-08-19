@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
@@ -16,12 +17,17 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class JWTServiceIntegrityTest {
+
+    @MockitoBean
+    private UserService userService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -101,8 +107,8 @@ class JWTServiceIntegrityTest {
     @Test
     void isValidRefreshToken() {
         String refreshToken = jwtService.createRefreshToken(testUserDetails);
-
-        assertTrue(jwtService.isValidAccessToken(refreshToken,testUserDetails));
+        when(userService.findByLogin(testUserDetails.getUsername())).thenReturn(Optional.of(testUser));
+        assertTrue(jwtService.isValidRefreshToken(refreshToken));
     }
 
     @Test

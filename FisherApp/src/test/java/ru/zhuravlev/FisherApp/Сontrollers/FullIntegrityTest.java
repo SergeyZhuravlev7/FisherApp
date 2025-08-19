@@ -21,8 +21,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,16 +48,18 @@ public class FullIntegrityTest {
     @MockitoBean
     private BindingResult bindingResult;
 
-    private UserDTOIn testUser;
+    private UserDTORegistration testUser;
     private UserDTOOut testUserDTO;
     private PostDTO postDTO;
+    private UserDTOFilling userDTOFilling;
 
 
     @BeforeEach
     void setUp() {
-        testUser = new UserDTOIn("testDevLogin","Иван","password","08.02.1995",Gender.MALE,"testmail@gmail.com");
+        testUser = new UserDTORegistration("testDevLogin","password","testmail@gmail.com");
         testUserDTO = new UserDTOOut("testDevLogin","Иван",30,Gender.MALE);
         postDTO = new PostDTO("Сом",new BigDecimal("12.5"),"ТестовоеСообщение");
+        userDTOFilling = new UserDTOFilling("Иван","08.02.1995","МужСКой");
     }
 
 
@@ -74,6 +75,13 @@ public class FullIntegrityTest {
                         .content(objectMapper.writeValueAsString(testUser)))
                 .andExpect(status().is(200));
 
+        mockMvc.perform(get("/api/users/" + testUser.getLogin()))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("login").hasJsonPath())
+                .andExpect(jsonPath("email").hasJsonPath())
+                .andExpect(jsonPath("age").value(0))
+                .andExpect(jsonPath("gender").isEmpty());
+
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginDTO)))
@@ -87,6 +95,20 @@ public class FullIntegrityTest {
         String accessToken = response.getBody().get("accessToken");
         String refreshToken = response.getBody().get("refreshToken");
 
+        mockMvc.perform(patch("/api/users/" + testUser.getLogin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDTOFilling))
+                        .header("Authorization","Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/users/" + testUser.getLogin()))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("login").hasJsonPath())
+                .andExpect(jsonPath("email").hasJsonPath())
+                .andExpect(jsonPath("age").value(30))
+                .andExpect(jsonPath("gender").isNotEmpty());
+
+
         when(bindingResult.hasErrors()).thenReturn(false);
 
         mockMvc.perform(post("/api/users/" + testUser.getLogin() + "/posts")
@@ -99,10 +121,6 @@ public class FullIntegrityTest {
                         .header("Authorization","Bearer " + accessToken))
                 .andExpect(status().is(200));
 
-        mockMvc.perform(delete("/api/users/" + testUser.getLogin())
-                        .header("Authorization","Bearer " + accessToken))
-                .andExpect(status().is(200));
-
         TokenDTO token = new TokenDTO();
         token.setRefreshToken(refreshToken);
 
@@ -111,5 +129,9 @@ public class FullIntegrityTest {
                         .content(objectMapper.writeValueAsString(token)))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("accessToken").hasJsonPath());
+
+        mockMvc.perform(delete("/api/users/" + testUser.getLogin())
+                        .header("Authorization","Bearer " + accessToken))
+                .andExpect(status().is(200));
     }
 }

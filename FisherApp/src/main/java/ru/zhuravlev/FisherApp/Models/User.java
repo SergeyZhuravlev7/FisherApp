@@ -5,10 +5,6 @@ Sergey Zhuravlev
 */
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
@@ -25,29 +21,22 @@ public class User {
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private int id;
 
-    @NotNull
-    @Size (min = 8, max = 30, message = "Длина логина должна быть от 8 до 30 символов.")
-    @NotBlank
     private String login;
 
     @Column (name = "password_hash")
     private String password;
 
-    @NotNull
-    @Size (min = 3, max = 30, message = "Длина имени должна быть от 3 до 30 символов.")
     private String name;
 
     @Transient
     private int age;
 
-    @NotNull
     @Enumerated (EnumType.STRING)
     private Gender gender;
 
     @Column (name = "birthdate")
     private LocalDate birthDate;
 
-    @Email (message = "Email не соответствует формату.")
     private String email;
 
     @OneToMany (mappedBy = "user", cascade = {CascadeType.PERSIST,CascadeType.MERGE}, fetch = FetchType.LAZY)
@@ -118,6 +107,7 @@ public class User {
     }
 
     public int getAge() {
+        if (this.birthDate == null) return 0;
         return this.birthDate.until(LocalDate.now()).getYears();
     }
 

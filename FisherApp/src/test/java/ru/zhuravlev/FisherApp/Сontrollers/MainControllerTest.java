@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
+import ru.zhuravlev.FisherApp.DTOs.UserDTOFilling;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.Post;
@@ -19,6 +20,7 @@ import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
 import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
+import ru.zhuravlev.FisherApp.Validators.UserDTOFillingValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,6 +45,8 @@ class MainControllerTest {
     private BindingResult bindingResult;
     @Mock
     private PostDTOValidator validator;
+    @Mock
+    private UserDTOFillingValidator userValidator;
 
     @InjectMocks
     private MainController mainController;
@@ -86,6 +90,22 @@ class MainControllerTest {
 
         assertEquals(200,response.getStatusCode().value());
         verify(userService,times(1)).deleteUser("login");
+    }
+
+    @Test
+    void fillingUserWithValidUser() {
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        ResponseEntity<HttpStatus> response = mainController.fillingUserProfile("login",new UserDTOFilling(),bindingResult);
+
+        assertEquals(200,response.getStatusCode().value());
+    }
+
+    @Test
+    void fillingUserWithInvalidUser() {
+        when(bindingResult.hasErrors()).thenReturn(true);
+
+        assertThrows(UserFieldsException.class,() -> mainController.fillingUserProfile("login",new UserDTOFilling(),bindingResult));
     }
 
     @Test

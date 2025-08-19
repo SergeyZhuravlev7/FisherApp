@@ -17,8 +17,7 @@ import ru.zhuravlev.FisherApp.Configuration.Security.AuthProviderImpl;
 import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
 import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
 import ru.zhuravlev.FisherApp.DTOs.TokenDTO;
-import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
-import ru.zhuravlev.FisherApp.Models.Gender;
+import ru.zhuravlev.FisherApp.DTOs.UserDTORegistration;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.JWTService;
 import ru.zhuravlev.FisherApp.Services.UserService;
@@ -26,7 +25,7 @@ import ru.zhuravlev.FisherApp.Util.BindingResultConverter;
 import ru.zhuravlev.FisherApp.Util.UserAlreadyExistException;
 import ru.zhuravlev.FisherApp.Util.UserErrorResponse;
 import ru.zhuravlev.FisherApp.Util.UserFieldsException;
-import ru.zhuravlev.FisherApp.Validators.UserDTOInValidator;
+import ru.zhuravlev.FisherApp.Validators.UserDTOFillingValidator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,28 +60,28 @@ class AuthControllerUnitTest {
     private JWTService jwtService;
 
     @Mock
-    private UserDTOInValidator userDTOInValidator;
+    private UserDTOFillingValidator userDTOFillingValidator;
 
     @InjectMocks
     private AuthController authController;
 
-    private UserDTOIn userDTOIn;
+    private UserDTORegistration userDTORegistration;
     private User user;
 
     @BeforeEach
     void setUp() {
-        userDTOIn = new UserDTOIn("TestLogin","password","Иван","08.02.1995",Gender.MALE,"testmail@gmail.com");
+        userDTORegistration = new UserDTORegistration("TestLogin","password","testmail@gmail.com");
         user = new User();
     }
 
     @Test
     void registrationWithValidUser() {
-        when(userService.findByLogin(userDTOIn.getLogin())).thenReturn(Optional.empty());
+        when(userService.findByLogin(userDTORegistration.getLogin())).thenReturn(Optional.empty());
         when(bindingResult.hasErrors()).thenReturn(false);
-        when(modelMapper.map(userDTOIn,User.class))
+        when(modelMapper.map(userDTORegistration,User.class))
                 .thenReturn(user);
 
-        ResponseEntity<HttpStatus> response = authController.registration(userDTOIn,bindingResult);
+        ResponseEntity<HttpStatus> response = authController.registration(userDTORegistration,bindingResult);
         assertEquals(200,response.getStatusCode().value());
 
         verify(userService).save(user);
@@ -90,17 +89,17 @@ class AuthControllerUnitTest {
 
     @Test
     void registrationWithInvalidUser() {
-        when(userService.findByLogin(userDTOIn.getLogin())).thenReturn(Optional.empty());
+        when(userService.findByLogin(userDTORegistration.getLogin())).thenReturn(Optional.empty());
         when(bindingResult.hasErrors()).thenReturn(true);
 
-        assertThrows(UserFieldsException.class,() -> authController.registration(userDTOIn,bindingResult));
+        assertThrows(UserFieldsException.class,() -> authController.registration(userDTORegistration,bindingResult));
     }
 
     @Test
     void registrationWithExistingUser() {
-        when(userService.findByLogin(userDTOIn.getLogin())).thenReturn(Optional.of(new User()));
+        when(userService.findByLogin(userDTORegistration.getLogin())).thenReturn(Optional.of(new User()));
 
-        assertThrows(UserAlreadyExistException.class,() -> authController.registration(userDTOIn,bindingResult));
+        assertThrows(UserAlreadyExistException.class,() -> authController.registration(userDTORegistration,bindingResult));
     }
 
 

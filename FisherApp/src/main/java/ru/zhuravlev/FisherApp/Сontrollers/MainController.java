@@ -10,14 +10,17 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
+import ru.zhuravlev.FisherApp.DTOs.UserDTOFilling;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
 import ru.zhuravlev.FisherApp.Models.Post;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
 import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
+import ru.zhuravlev.FisherApp.Validators.UserDTOFillingValidator;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -28,13 +31,16 @@ public class MainController {
     private final ModelMapper modelMapper;
     private final BindingResultConverter converter;
     private final PostDTOValidator postDTOValidator;
+    private final UserDTOFillingValidator userDTOValidator;
 
     @Autowired
-    public MainController(UserService userService,ModelMapper modelMapper,BindingResultConverter converter,PostDTOValidator postDTOValidator) {
+    public MainController(UserService userService,ModelMapper modelMapper,BindingResultConverter converter,
+                          PostDTOValidator postDTOValidator,UserDTOFillingValidator userDTOValidator) {
         this.userService = userService;
         this.modelMapper = modelMapper;
         this.converter = converter;
         this.postDTOValidator = postDTOValidator;
+        this.userDTOValidator = userDTOValidator;
     }
 
     @GetMapping ("/{login}")
@@ -48,6 +54,16 @@ public class MainController {
     @DeleteMapping ("/{login}")
     public ResponseEntity<HttpStatus> deleteUserProfile(@PathVariable String login) {
         userService.deleteUser(login);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PreAuthorize ("#login == authentication.getName")
+    @PatchMapping ("/{login}")
+    public ResponseEntity<HttpStatus> fillingUserProfile(@PathVariable String login,@RequestBody @Valid UserDTOFilling userDTOFilling,
+                                                         BindingResult bindingResult) {
+        userDTOValidator.validate(userDTOFilling,bindingResult);
+        if (bindingResult.hasErrors()) throw new UserFieldsException(converter.convertToMessage(bindingResult));
+        userService.fillUser(login,userDTOFilling);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -80,6 +96,11 @@ public class MainController {
     @ExceptionHandler
     public ResponseEntity<PostErrorResponse> exceptionHandler(BadCredentialsException ex) {
         return new ResponseEntity<>(new PostErrorResponse(ex.getMessage(),System.currentTimeMillis()),HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> exceptionHandler(UserFieldsException ex) {
+        return new ResponseEntity<>(ex.getErrors(),HttpStatus.BAD_REQUEST);
     }
 
 }
