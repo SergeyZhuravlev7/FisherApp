@@ -11,14 +11,17 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
+import ru.zhuravlev.FisherApp.DTOs.UserDTOFilling;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
+import ru.zhuravlev.FisherApp.Validators.UserDTOFillingValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -46,12 +49,16 @@ class MainControllerIntegrationTest {
     @MockitoBean
     private PostDTOValidator postDTOValidator;
 
+    @MockitoSpyBean
+    private UserDTOFillingValidator userValidator;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private User testUser;
     private UserDTOOut testUserDTO;
     private PostDTO validPostDTO;
     private PostDTO invalidPostDTO;
+    private UserDTOFilling userDTOFilling;
 
     @BeforeEach
     void setUp() {
@@ -60,6 +67,7 @@ class MainControllerIntegrationTest {
         testUserDTO = new UserDTOOut("loginnnn","Иван",30,Gender.MALE);
         validPostDTO = new PostDTO("Щука",BigDecimal.valueOf(18),"Тестовое сообщение");
         invalidPostDTO = new PostDTO();
+        userDTOFilling = new UserDTOFilling("Иван","08.02.1995","мужской");
     }
 
     @Test
@@ -108,11 +116,40 @@ class MainControllerIntegrationTest {
                 .andExpect(status().is(403));
     }
 
+    @WithMockUser (username = "loginnnn")
+    @Test
+    void fillingUserWithAuthAndValidUser() throws Exception {
+        mockMvc.perform(patch("/api/users/loginnnn")
+                        .content(objectMapper.writeValueAsString(userDTOFilling))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(200));
+    }
+
+    @WithAnonymousUser
+    @Test
+    void fillingUserWithoutAuthAndValidUser() throws Exception {
+        mockMvc.perform(patch("/api/users/loginnnn")
+                        .content(objectMapper.writeValueAsString(userDTOFilling))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(401));
+    }
+
+    @WithMockUser (username = "loginnnn")
+    @Test
+    void fillingUserWithAuthAndInvalidUser() throws Exception {
+        mockMvc.perform(patch("/api/users/loginnnn")
+                        .content(objectMapper.writeValueAsString(new UserDTOFilling()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("name").value("Имя не может быть пустым."))
+                .andExpect(jsonPath("birthDate").value("Дата рождения не может быть пустой."));
+    }
+
     @Test
     @WithAnonymousUser
     void addInvalidPostWithoutAuth() throws Exception {
-        mockMvc.perform(post("/api/users/loginnnn/posts").
-                        content(objectMapper.writeValueAsString(invalidPostDTO))
+        mockMvc.perform(post("/api/users/loginnnn/posts")
+                        .content(objectMapper.writeValueAsString(invalidPostDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(401));
     }

@@ -3,16 +3,25 @@ package ru.zhuravlev.FisherApp.Services;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
+
 import java.util.Date;
 import java.util.UUID;
 
 @Component
 public class JWTService {
+
+    private final UserService userService;
+
+    @Autowired
+    public JWTService(UserService userService) {
+        this.userService = userService;
+    }
 
     @Value ("${jwt.access.key}")
     private String jwtAccessKey;
@@ -85,11 +94,17 @@ public class JWTService {
 
     public boolean isValidAccessToken(String jwt,UserDetails userDetails) {
         DecodedJWT token = JWT.decode(jwt);
-        return getUsername(jwt).equals(userDetails.getUsername()) && token.getExpiresAt().after(new Date());
+        if (! getUsername(jwt).equals(userDetails.getUsername())) return false;
+        else if (token.getExpiresAt().before(new Date())) return false;
+        else if (! "FisherApp".equals(token.getIssuer())) return false;
+        else return "access".equals(token.getClaim("typ").asString());
     }
 
     public boolean isValidRefreshToken(String jwt) {
         DecodedJWT token = JWT.decode(jwt);
-        return token.getIssuer().equals("FisherApp") && token.getExpiresAt().after(new Date());
+        if (userService.findByLogin(getUsername(jwt)).isEmpty()) return false;
+        else if (token.getExpiresAt().before(new Date())) return false;
+        else if (! "FisherApp".equals(token.getIssuer())) return false;
+        else return "refresh".equals(token.getClaim("typ").asString());
     }
 }

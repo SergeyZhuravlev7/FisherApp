@@ -6,14 +6,14 @@ DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS user_achievements;
 
 CREATE TABLE IF NOT EXISTS users(id INT AUTO_INCREMENT,
-login VARCHAR(30) CHECK(LENGTH(login) > 7 & LENGTH(login) < 31) UNIQUE NOT NULL,
+login VARCHAR(30) CHECK(LENGTH(login) > 7 & LENGTH(login) < 21) UNIQUE NOT NULL,
 password_hash VARCHAR(255),
 name VARCHAR(30) check(LENGTH(name) > 2 & LENGTH(name) < 31),
 birthdate DATE,
 gender ENUM('MALE', 'FEMALE'),
 created_at DATETIME,
-email VARCHAR(40),
-role VARCHAR(30),
+email VARCHAR(30) UNIQUE NOT NULL,
+role VARCHAR(10),
 PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS achievements(id SMALLINT AUTO_INCREMENT,

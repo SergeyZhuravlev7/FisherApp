@@ -17,12 +17,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.zhuravlev.FisherApp.Configuration.Security.CustomUserDetails;
 import ru.zhuravlev.FisherApp.DTOs.LoginDTO;
 import ru.zhuravlev.FisherApp.DTOs.TokenDTO;
-import ru.zhuravlev.FisherApp.DTOs.UserDTOIn;
+import ru.zhuravlev.FisherApp.DTOs.UserDTOFilling;
+import ru.zhuravlev.FisherApp.DTOs.UserDTORegistration;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.User;
 import ru.zhuravlev.FisherApp.Services.JWTService;
 import ru.zhuravlev.FisherApp.Services.UserService;
-import ru.zhuravlev.FisherApp.Validators.UserDTOInValidator;
+import ru.zhuravlev.FisherApp.Validators.UserDTOFillingValidator;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -53,26 +54,28 @@ class AuthControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private UserDTOInValidator userDTOInValidator;
+    private UserDTOFillingValidator userDTOFillingValidator;
 
     @MockitoSpyBean
     private JWTService jwtService;
 
-    private UserDTOIn validUserDTO;
-    private UserDTOIn invalidUserDTO;
+    private UserDTORegistration validUserDTO;
+    private UserDTORegistration invalidUserDTO;
     private User testUser;
     private LoginDTO testLoginDTO;
+    private UserDTOFilling userDTOFilling;
 
     @BeforeEach
     void setUp() {
-        validUserDTO = new UserDTOIn("TestLogin","Иван","password","08.02.1995",Gender.MALE,"testmail@gmail.com");
-        invalidUserDTO = new UserDTOIn();
+        validUserDTO = new UserDTORegistration("TestLogin","password","testmail@gmail.com");
+        invalidUserDTO = new UserDTORegistration();
         LocalDate date = LocalDate.parse("08.02.1995",DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         testUser = new User("TestLogin",passwordEncoder.encode("password"),"Иван",Gender.MALE,date,"testmail@gmail.com");
         testUser.setRole("USER");
         testLoginDTO = new LoginDTO();
         testLoginDTO.setLogin("TestLogin");
         testLoginDTO.setPassword("password");
+        userDTOFilling = new UserDTOFilling("Иван","08.02.1995","МужСКой");
     }
 
     @Test
@@ -106,10 +109,9 @@ class AuthControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("login").hasJsonPath())
-                .andExpect(jsonPath("name").hasJsonPath())
-                .andExpect(jsonPath("birthDate").hasJsonPath())
-                .andExpect(jsonPath("gender").hasJsonPath())
-                .andExpect(jsonPath("password").hasJsonPath());
+                .andExpect(jsonPath("password").hasJsonPath())
+                .andExpect(jsonPath("email").hasJsonPath());
+
     }
 
     @Test
@@ -159,6 +161,8 @@ class AuthControllerIntegrationTest {
         String stringToken = jwtService.createRefreshToken(userDetails);
         TokenDTO validToken = new TokenDTO();
         validToken.setRefreshToken(stringToken);
+
+        when(userService.findByLogin(testUser.getLogin())).thenReturn(Optional.of(testUser));
 
         mockMvc.perform(post("/api/auth/token")
                         .content(objectMapper.writeValueAsString(validToken))
