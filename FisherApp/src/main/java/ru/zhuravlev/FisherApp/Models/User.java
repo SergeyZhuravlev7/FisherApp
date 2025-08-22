@@ -10,8 +10,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table (name = "users")
@@ -40,10 +40,12 @@ public class User {
     private String email;
 
     @OneToMany (mappedBy = "user", cascade = {CascadeType.PERSIST,CascadeType.MERGE}, fetch = FetchType.LAZY)
-    private List<Post> posts;
+    @OrderBy (value = "id DESC ")
+    private Set<Post> posts;
 
     @ManyToMany (mappedBy = "users", cascade = {CascadeType.PERSIST,CascadeType.MERGE}, fetch = FetchType.LAZY)
-    private List<Achievement> achievements;
+    @OrderBy (value = "id ASC")
+    private Set<Achievement> achievements;
 
     private LocalDateTime created_at;
 
@@ -119,19 +121,19 @@ public class User {
         this.gender = gender;
     }
 
-    public List<Post> getPosts() {
+    public Set<Post> getPosts() {
         return posts;
     }
 
-    public void setPosts(List<Post> posts) {
+    public void setPosts(Set<Post> posts) {
         this.posts = posts;
     }
 
-    public List<Achievement> getAchievements() {
+    public Set<Achievement> getAchievements() {
         return achievements;
     }
 
-    public void setAchievements(List<Achievement> achievements) {
+    public void setAchievements(Set<Achievement> achievements) {
         this.achievements = achievements;
     }
 
@@ -156,7 +158,7 @@ public class User {
     }
 
     public void addPost(Post post) {
-        if (this.posts == null) this.posts = new ArrayList<>();
+        if (this.posts == null) this.posts = new HashSet<>();
         this.posts.add(post);
         post.setUser(this);
     }

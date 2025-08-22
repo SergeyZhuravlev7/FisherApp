@@ -33,4 +33,4 @@ VALUES (1, 'Щука', 4.85, 'Test message'),
 (2, 'Карп', 3.90, 'Test message'),
 (2, 'Cом', 30.8, 'Test message');
 
-INSERT INTO user_achievements VALUES (2, 1), (2, 2);
+INSERT INTO user_achievements VALUES (2, 1, now()), (2, 2, now());

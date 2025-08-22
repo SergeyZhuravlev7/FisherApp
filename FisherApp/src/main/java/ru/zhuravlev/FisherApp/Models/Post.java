@@ -11,10 +11,11 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table (name = "posts")
-public class Post {
+public class Post implements Comparable {
 
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
@@ -94,5 +95,24 @@ public class Post {
                 ", fish_weight=" + fishWeight +
                 ", message='" + message + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Post post = (Post) o;
+        return id == post.id && Objects.equals(user,post.user) && Objects.equals(fish,post.fish) && Objects.equals(fishWeight,post.fishWeight) && Objects.equals(message,post.message) && Objects.equals(created_at,post.created_at);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id,user,fish,fishWeight,message,created_at);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (o instanceof Post post) {
+            return this.getId() - post.getId();
+        } else return 0;
     }
 }

@@ -73,6 +73,7 @@ class MainControllerIntegrationTest {
     @Test
     void getUserProfileWithExistingUser() throws Exception {
         when(userService.findByLogin(testUser.getLogin())).thenReturn(Optional.of(testUser));
+        when(userService.loadUser(testUser.getLogin())).thenReturn(testUser);
         when(modelMapper.map(testUser,UserDTOOut.class)).thenReturn(testUserDTO);
         mockMvc.perform(get("/api/users/loginnnn")
                         .accept(MediaType.APPLICATION_JSON))

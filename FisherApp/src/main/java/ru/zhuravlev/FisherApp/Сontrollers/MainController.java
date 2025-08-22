@@ -46,7 +46,10 @@ public class MainController {
     @GetMapping ("/{login}")
     public UserDTOOut getUserProfile(@PathVariable String login) {
         Optional<User> optionalUser = userService.findByLogin(login);
-        if (optionalUser.isPresent()) return modelMapper.map(optionalUser.get(),UserDTOOut.class);
+        if (optionalUser.isPresent()) {
+            User user = userService.loadUser(login);
+            return modelMapper.map(user,UserDTOOut.class);
+        }
         throw new UserNotFoundException();
     }
 
