@@ -39,5 +39,6 @@ FOREIGN KEY (post_id) REFERENCES posts(id));
 
 CREATE TABLE IF NOT EXISTS user_achievements(user_id INT,
 achievement_id SMALLINT,
+received_at DATETIME,
 PRIMARY KEY (user_id, achievement_id));
 
