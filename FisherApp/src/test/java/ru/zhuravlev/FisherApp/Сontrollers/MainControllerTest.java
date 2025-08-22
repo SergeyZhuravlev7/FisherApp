@@ -67,7 +67,8 @@ class MainControllerTest {
     @Test
     void getExistingUserProfile() {
         when(userService.findByLogin("login")).thenReturn(Optional.of(testUser));
-        when(modelMapper.map(Optional.of(testUser).get(),UserDTOOut.class)).thenReturn(userDTOOut);
+        when(userService.loadUser("login")).thenReturn(testUser);
+        when(modelMapper.map(testUser,UserDTOOut.class)).thenReturn(userDTOOut);
 
         UserDTOOut response = mainController.getUserProfile("login");
 
