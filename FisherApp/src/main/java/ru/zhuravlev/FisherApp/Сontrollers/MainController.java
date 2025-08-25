@@ -86,6 +86,13 @@ public class MainController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PreAuthorize ("isAuthenticated() and principal != 'anonymousUser'")
+    @PostMapping ("/{login}/posts/{postId}/like")
+    public ResponseEntity<HttpStatus> likePost(@PathVariable String login,@PathVariable int postId) {
+        if (! userService.toggleLike(login,postId)) throw new UserHaveNotPostException();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @ExceptionHandler
     public ResponseEntity<UserErrorResponse> exceptionHandler(UserNotFoundException ex) {
         return new ResponseEntity<>(new UserErrorResponse(ex.getMessage(),System.currentTimeMillis()),HttpStatus.BAD_REQUEST);
@@ -104,6 +111,11 @@ public class MainController {
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> exceptionHandler(UserFieldsException ex) {
         return new ResponseEntity<>(ex.getErrors(),HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> exceptionHandler(UserHaveNotPostException ex) {
+        return new ResponseEntity<>(Map.of("message",ex.getMessage()),HttpStatus.BAD_REQUEST);
     }
 
 }

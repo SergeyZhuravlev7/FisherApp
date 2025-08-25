@@ -36,6 +36,14 @@ public class Post implements Comparable {
 
     private LocalDateTime created_at;
 
+    private long likesCount = 0L;
+    
+    @Transient
+    private boolean isLikedByThisUser;
+
+//    @OneToMany (mappedBy = "post", cascade = CascadeType.ALL)
+//    private final SortedSet<Comment> comments = new TreeSet<>();
+
     public Post() {
         this.created_at = LocalDateTime.now();
     }
@@ -86,14 +94,33 @@ public class Post implements Comparable {
         this.message = message;
     }
 
+    public long getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(long likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public boolean isLikedByThisUser() {
+        return isLikedByThisUser;
+    }
+
+    public void setLikedByThisUser(boolean likedByThisUser) {
+        isLikedByThisUser = likedByThisUser;
+    }
+
     @Override
     public String toString() {
         return "Post{" +
                 "id=" + id +
-                ", user=" + user.getId() +
-                ", fish=" + fish +
-                ", fish_weight=" + fishWeight +
+                ", user=" + user.getLogin() +
+                ", fish='" + fish + '\'' +
+                ", fishWeight=" + fishWeight +
                 ", message='" + message + '\'' +
+                ", created_at=" + created_at +
+                ", likesCount=" + likesCount +
+                ", isLikedByThisUser=" + isLikedByThisUser +
                 '}';
     }
 

@@ -18,7 +18,7 @@ public class UserDTOOut {
 
     private String email;
 
-    private List<PostDTO> posts;
+    private List<PostDTOOut> posts;
 
     private List<AchievementDTO> achievements;
 
@@ -64,12 +64,13 @@ public class UserDTOOut {
         this.gender = gender;
     }
 
-    public List<PostDTO> getPosts() {
+    public List<PostDTOOut> getPosts() {
         return posts;
     }
 
-    public void setPosts(List<PostDTO> posts) {
+    public void setPosts(List<PostDTOOut> posts) {
         this.posts = posts;
+        this.posts.sort((p1,p2) -> p2.getId() - p1.getId());
     }
 
     public List<AchievementDTO> getAchievements() {

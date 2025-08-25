@@ -20,7 +20,9 @@ import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
 import java.math.BigDecimal;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -70,18 +72,21 @@ public class FullIntegrityTest {
         loginDTO.setLogin(testUser.getLogin());
         loginDTO.setPassword(testUser.getPassword());
 
+        //регистрация пользователя
         mockMvc.perform(post("/api/auth/registration")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
                 .andExpect(status().is(200));
 
+        //получение профиля юзера
         mockMvc.perform(get("/api/users/" + testUser.getLogin()))
                 .andExpect(status().is(200))
-                .andExpect(jsonPath("login").hasJsonPath())
-                .andExpect(jsonPath("email").hasJsonPath())
+                .andExpect(jsonPath("login").value("testDevLogin"))
+                .andExpect(jsonPath("email").value("testmail@gmail.com"))
                 .andExpect(jsonPath("age").value(0))
                 .andExpect(jsonPath("gender").isEmpty());
 
+        //получение токенов доступа
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginDTO)))
@@ -95,28 +100,61 @@ public class FullIntegrityTest {
         String accessToken = response.getBody().get("accessToken");
         String refreshToken = response.getBody().get("refreshToken");
 
+        //добавление даты рождения, имени, пола
         mockMvc.perform(patch("/api/users/" + testUser.getLogin())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTOFilling))
                         .header("Authorization","Bearer " + accessToken))
                 .andExpect(status().isOk());
 
+        //получение профиля с новыми данными, посты отсутствуют
         mockMvc.perform(get("/api/users/" + testUser.getLogin()))
                 .andExpect(status().is(200))
-                .andExpect(jsonPath("login").hasJsonPath())
-                .andExpect(jsonPath("email").hasJsonPath())
+                .andExpect(jsonPath("login").value("testDevLogin"))
+                .andExpect(jsonPath("email").value("testmail@gmail.com"))
                 .andExpect(jsonPath("age").value(30))
                 .andExpect(jsonPath("gender").isNotEmpty());
 
 
         when(bindingResult.hasErrors()).thenReturn(false);
-
+        // добавляем новый пост
         mockMvc.perform(post("/api/users/" + testUser.getLogin() + "/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postDTO))
                         .header("Authorization","Bearer " + accessToken))
                 .andExpect(status().is(200));
 
+        //получение профиля с новыми данными, пост добавлен
+        String result = mockMvc.perform(get("/api/users/" + testUser.getLogin()))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("login").hasJsonPath())
+                .andExpect(jsonPath("email").hasJsonPath())
+                .andExpect(jsonPath("age").value(30))
+                .andExpect(jsonPath("gender").isNotEmpty())
+                .andExpect(jsonPath("posts").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+        System.out.println(result);
+
+        //лайкаем добавленный пост
+        mockMvc.perform(post("/api/users/" + testUser.getLogin() + "/posts/5/like")
+                        .with(user("testDevLogin").roles("USER")))
+                .andExpect(status().is(200));
+
+        //получение профиля с новыми данными, пост добавлен и поставлен лайк
+        String resultAfterLike = mockMvc.perform(get("/api/users/" + testUser.getLogin())
+                        .with(user("testDevLogin").roles("USER")))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("login").hasJsonPath())
+                .andExpect(jsonPath("email").hasJsonPath())
+                .andExpect(jsonPath("age").value(30))
+                .andExpect(jsonPath("gender").isNotEmpty())
+                .andExpect(jsonPath("posts").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+        System.out.println(resultAfterLike);
+
+        assertNotEquals(result,resultAfterLike);
+
+        // удаляем добавленный пост
         mockMvc.perform(delete("/api/users/" + testUser.getLogin() + "/posts/5")
                         .header("Authorization","Bearer " + accessToken))
                 .andExpect(status().is(200));
@@ -124,12 +162,14 @@ public class FullIntegrityTest {
         TokenDTO token = new TokenDTO();
         token.setRefreshToken(refreshToken);
 
+        // обновляем токен доступа
         mockMvc.perform(post("/api/auth/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(token)))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("accessToken").hasJsonPath());
 
+        // удаление пользователя
         mockMvc.perform(delete("/api/users/" + testUser.getLogin())
                         .header("Authorization","Bearer " + accessToken))
                 .andExpect(status().is(200));
