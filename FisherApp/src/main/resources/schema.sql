@@ -1,5 +1,6 @@
 -- Тестовые таблицы
 DROP TABLE IF EXISTS likes;
+DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS achievements;
 DROP TABLE IF EXISTS users;
@@ -27,18 +28,26 @@ fish VARCHAR(15),
 fish_weight DECIMAL(4,2),
 message VARCHAR(300),
 created_at DATETIME,
+likes_count INT UNSIGNED DEFAULT 0,
 PRIMARY KEY (id),
 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL);
 
-CREATE TABLE IF NOT EXISTS likes (id INT AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS likes (id INT UNSIGNED AUTO_INCREMENT,
 user_id INT,
 post_id INT,
 PRIMARY KEY (id),
 FOREIGN KEY (user_id) REFERENCES users(id),
 FOREIGN KEY (post_id) REFERENCES posts(id));
 
+CREATE TABLE IF NOT EXISTS comments (id INT UNSIGNED AUTO_INCREMENT,
+user_id INT,
+post_id INT,
+message VARCHAR(300),
+PRIMARY KEY (id),
+FOREIGN KEY (user_id) REFERENCES users(id),
+FOREIGN KEY (post_id) REFERENCES posts(id));
+
 CREATE TABLE IF NOT EXISTS user_achievements(user_id INT,
 achievement_id SMALLINT,
-received_at DATETIME,
 PRIMARY KEY (user_id, achievement_id));
 

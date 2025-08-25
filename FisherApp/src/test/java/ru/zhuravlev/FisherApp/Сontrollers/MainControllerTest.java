@@ -17,6 +17,7 @@ import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
 import ru.zhuravlev.FisherApp.Models.Gender;
 import ru.zhuravlev.FisherApp.Models.Post;
 import ru.zhuravlev.FisherApp.Models.User;
+import ru.zhuravlev.FisherApp.Services.PostService;
 import ru.zhuravlev.FisherApp.Services.UserService;
 import ru.zhuravlev.FisherApp.Util.*;
 import ru.zhuravlev.FisherApp.Validators.PostDTOValidator;
@@ -47,6 +48,8 @@ class MainControllerTest {
     private PostDTOValidator validator;
     @Mock
     private UserDTOFillingValidator userValidator;
+    @Mock
+    private PostService postService;
 
     @InjectMocks
     private MainController mainController;
@@ -134,6 +137,23 @@ class MainControllerTest {
 
         assertEquals(200,response.getStatusCode().value());
         verify(userService,times(1)).deletePost("login",1);
+    }
+
+    @Test
+    void likePostWithExistingUserAndPost() {
+        when(userService.toggleLike("login",1)).thenReturn(true);
+
+        ResponseEntity<HttpStatus> response = mainController.likePost("login",1);
+
+        assertNotNull(response.getStatusCode());
+        assertEquals(200,response.getStatusCode().value());
+    }
+
+    @Test
+    void likePostWithoutExistingUserOrPost() {
+        when(userService.toggleLike("login",1)).thenReturn(false);
+
+        assertThrows(UserHaveNotPostException.class,() -> mainController.likePost("login",1));
     }
 
     @Test

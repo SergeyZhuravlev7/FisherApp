@@ -40,7 +40,7 @@ public class User {
     private String email;
 
     @OneToMany (mappedBy = "user", cascade = {CascadeType.PERSIST,CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @OrderBy (value = "id DESC ")
+    @OrderBy (value = "id DESC")
     private Set<Post> posts;
 
     @ManyToMany (mappedBy = "users", cascade = {CascadeType.PERSIST,CascadeType.MERGE}, fetch = FetchType.LAZY)

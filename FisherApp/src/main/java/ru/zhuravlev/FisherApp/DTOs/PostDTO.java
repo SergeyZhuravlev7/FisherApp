@@ -8,8 +8,6 @@ import java.math.BigDecimal;
 
 public class PostDTO {
 
-    private int id;
-
     private String fish;
 
     private BigDecimal fishWeight;
@@ -25,14 +23,6 @@ public class PostDTO {
         this.fish = fish;
         this.fishWeight = fishWeight;
         this.message = message;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getFish() {

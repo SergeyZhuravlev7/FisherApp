@@ -13,7 +13,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import ru.zhuravlev.FisherApp.DTOs.PostDTO;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOFilling;
 import ru.zhuravlev.FisherApp.DTOs.UserDTOOut;
@@ -194,12 +193,11 @@ class MainControllerIntegrationTest {
     @Test
     @WithMockUser (username = "loginnnn")
     void addInvalidPostWithAuth() throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/users/loginnnn/posts")
+        mockMvc.perform(post("/api/users/loginnnn/posts")
                         .content(objectMapper.writeValueAsString(invalidPostDTO))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(400))
-                .andExpect(jsonPath("message").hasJsonPath())
-                .andReturn();
+                .andExpect(jsonPath("message").hasJsonPath());
     }
 
     @Test
@@ -221,6 +219,32 @@ class MainControllerIntegrationTest {
     void deletePostWithAnotherAuth() throws Exception {
         mockMvc.perform(delete("/api/users/loginnnn1234/posts/1"))
                 .andExpect(status().is(403));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void likePostWithAnonymousUser() throws Exception {
+        mockMvc.perform(post("/api/users/loginnnn1234/posts/1/like"))
+                .andExpect(status().is(401));
+    }
+
+    @Test
+    @WithMockUser (username = "loginnnn")
+    void likeExistingPost() throws Exception {
+        when(userService.toggleLike("loginnnn",1)).thenReturn(true);
+
+        mockMvc.perform(post("/api/users/loginnnn/posts/1/like"))
+                .andExpect(status().is(200));
+    }
+
+    @Test
+    @WithMockUser (username = "loginnnn")
+    void likeNotExistingPost() throws Exception {
+        when(userService.toggleLike("loginnnn",1)).thenReturn(false);
+
+        mockMvc.perform(post("/api/users/loginnnn/posts/1/like"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("message").hasJsonPath());
     }
 
 }
